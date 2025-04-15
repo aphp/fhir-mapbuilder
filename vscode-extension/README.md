@@ -62,7 +62,16 @@ After few seconds, the results are available in the **fml-generated** folder.
 
 ![Validate StructureMap](ext-images/load-engine.gif)
 
-### Troubleshoting
+### Technical insight
+
+When the user first interact with an fml file, a matchbox-engine starts. 
+The current \output\package.tgz file (assuming that the user is working on a FHIR IG), and all the fml files in the repo are loaded in the engine. 
+
+Any evolution in fml files in the repository (modification or creation) is automaticaly detected and lead to the loading of the modified fml file. 
+
+Building the IG is also detected (output/qa.json creation specifically) and lead to the loading of 'output/package.tgz'. 
+
+#### Troubleshoting
 The FHIR MapBuilder use the output/package.tgz file to configure the matchbox-engine, which is the standardized place to 
 store the package in a FIG building process. However, depending on your use case, you may not need such package.
 There is no control for the `Validate StructureMap (Current input)` feature to make it fast to use. If there is no 
