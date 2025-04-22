@@ -28,5 +28,5 @@ jobs:
         run: npm install -g vsce
 
       - name: Publish to Marketplace
-        run: vsce publish -p ${{ secrets.VSCE_TOKEN }}
+        run: vsce publish -p ${{ secrets.P_A_T }}
         working-directory: vscode-extension
