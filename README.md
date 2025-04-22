@@ -53,7 +53,7 @@ mv fhir-mapbuilder-validation/target/fhir-mapbuilder-validation.jar vscode-exten
 ```sh
 cd vscode-extension
 npm install
-vsce package --baseContentUrl https://github.com/aphp/fhir-mapbuilder.git
+vsce package --baseImagesUrl=https://raw.githubusercontent.com/aphp/fhir-mapbuilder/refs/heads/main/vscode-extension
 ```
 
 This command will generate a `.vsix` file, which can be installed in VS Code.
@@ -74,5 +74,5 @@ mvn spring-boot:run
 
 ## 📜 License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](LICENSE.md).
 

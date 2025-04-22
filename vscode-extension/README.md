@@ -1,7 +1,7 @@
 # FHIR MapBuilder Project
 
 ## Overview
-FHIR MapBuilder is a Visual Studio Code extension designed to facilitate the edition of FHIR StructureMap resources 
+FHIR MapBuilder is a Visual Studio Code extension designed to facilitate the edition of FHIR StructureMap resources
 using FHIR Mapping Language (FML).
 
 FHIR® is the registered trademark of HL7 and is used with the permission of HL7.
@@ -14,10 +14,10 @@ This extension assists users by offering the following features:
 - StructureMap validation on test data
 
 ## FML execution on test data
-This function works thanks to the java package fhir-mapbuilder-validation.jar: the springboot REST API based on 
+This function works thanks to the java package fhir-mapbuilder-validation.jar: the springboot REST API based on
 [the matchbox-engine](https://github.com/ahdis/matchbox), provided in the target folder.
 
-There is only one engine running, regardless the number of VSCode instance running. It is therefor strongly discouraged to have two FHIR IG oppened in two VSCode instances simultaneously. 
+There is only one engine running, regardless the number of VSCode instance running. It is therefor strongly discouraged to have two FHIR IG oppened in two VSCode instances simultaneously.
 
 This function have 3 inputs:
 - **FML file** to test (required)
@@ -62,21 +62,21 @@ After few seconds, the results are available in the **fml-generated** folder.
 
 ![Validate StructureMap](ext-images/load-engine.gif)
 
-### Technical insight
+#### Technical insight
 
-When the user first interact with an fml file, a matchbox-engine starts. 
-The current \output\package.tgz file (assuming that the user is working on a FHIR IG), and all the fml files in the repo are loaded in the engine. 
+When the user first interact with an fml file, a matchbox-engine starts.
+The current \output\package.tgz file (assuming that the user is working on a FHIR IG), and all the fml files in the repo are loaded in the engine.
 
-Any evolution in fml files in the repository (modification or creation) is automaticaly detected and lead to the loading of the modified fml file. 
+* Any evolution in fml files in the repository (modification or creation) is automaticaly detected and lead to the loading of the modified fml file.
 
-Building the IG is also detected (output/qa.json creation specifically) and lead to the loading of 'output/package.tgz'. 
+* Building the IG is also detected (output/qa.json creation specifically) and lead to the loading of 'output/package.tgz'.
 
 #### Troubleshoting
-The FHIR MapBuilder use the output/package.tgz file to configure the matchbox-engine, which is the standardized place to 
+The FHIR MapBuilder use the output/package.tgz file to configure the matchbox-engine, which is the standardized place to
 store the package in a FIG building process. However, depending on your use case, you may not need such package.
-There is no control for the `Validate StructureMap (Current input)` feature to make it fast to use. If there is no 
-package while it should, the validation won't success (of course). In such scenario, you'll find a message in the error 
-output file with the `"messageId": "TYPE_SPECIFIC_CHECKS_DT_CANONICAL_RESOLVE"`. This error also happen if the wrong 
+There is no control for the `Validate StructureMap (Current input)` feature to make it fast to use. If there is no
+package while it should, the validation won't success (of course). In such scenario, you'll find a message in the error
+output file with the `"messageId": "TYPE_SPECIFIC_CHECKS_DT_CANONICAL_RESOLVE"`. This error also happen if the wrong
 package is loaded.
 
 ## Templates
@@ -109,4 +109,4 @@ Autocompletion for attributes is triggered when an object is followed by a dot (
 
 ## 📜 License
 
-This project is licensed under the [MIT License](../LICENSE).
+This project is licensed under the [MIT License](LICENSE.md).
