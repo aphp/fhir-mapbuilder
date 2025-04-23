@@ -1,5 +1,8 @@
 # Change Log
 
+# 1.0.1 (2025-04-23)
+* VSCode extension documentation changes
+
 # 1.0.0 (2025-04-07)
 
 * Parse .fml files and/or load the IG package when an add or change event occurs.
