@@ -46,7 +46,7 @@ jobs:
         run: npm install -g vsce
 
       - name: Package extension
-        run: vsce package --baseContentUrl https://github.com/aphp/fhir-mapbuilder.git
+        run: vsce package --baseImagesUrl=https://raw.githubusercontent.com/aphp/fhir-mapbuilder/refs/heads/main/vscode-extension
         working-directory: vscode-extension
 
       - name: Create GitHub Release

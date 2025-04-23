@@ -40,7 +40,7 @@ This function is called from an open fml file by right-clicking anywhere in the 
 
 After few seconds, the results are available in the **fml-generated** folder.
 
-![Validate StructureMap](https://raw.githubusercontent.com/aphp/fhir-mapbuilder/refs/heads/main/vscode-extension/ext-images/validation-with-selection.gif)
+![Validate StructureMap](ext-images/validation-with-selection.gif)
 
 ### Validate StructureMap (Current input)
 
@@ -50,7 +50,7 @@ The json test file, selected during a previous execution, is used automatically.
 
 After few seconds, the results are available in the **fml-generated** folder.
 
-![Validate StructureMap](https://raw.githubusercontent.com/aphp/fhir-mapbuilder/refs/heads/main/vscode-extension/ext-images/validation.gif)
+![Validate StructureMap](ext-images/validation.gif)
 
 ### Load current package and Validate StructureMap
 
@@ -60,7 +60,7 @@ After few seconds, the results are available in the **fml-generated** folder.
 
 After few seconds, the results are available in the **fml-generated** folder.
 
-![Validate StructureMap](https://raw.githubusercontent.com/aphp/fhir-mapbuilder/refs/heads/main/vscode-extension/ext-images/load-engine.gif)
+![Validate StructureMap](ext-images/load-engine.gif)
 
 #### Technical insight
 
@@ -105,7 +105,7 @@ The extension supports autocompletion for FHIR objects and their attributes when
 Autocompletion for attributes is triggered when an object is followed by a dot (.), e.g., `Patient.`.
 
 
-![Autocomplete](https://raw.githubusercontent.com/aphp/fhir-mapbuilder/refs/heads/main/vscode-extension/ext-images/autocomplete-part1.gif)
+![Autocomplete](ext-images/autocomplete-part1.gif)
 
 ## 📜 License
 
