@@ -83,7 +83,7 @@ package is loaded.
 
 To use a template, you need to apply it. There are two possible methods.
 
-### `fill with template`function in a new document
+### "fill with template" function in a new document
 
 1. Open a new text file using the ```Ctrl + N``` command.
 2. Click on "Fill with template". A dropdown menu will appear, allowing you to choose which template to apply.
