@@ -3,7 +3,7 @@
   "displayName": "FHIR MapBuilder",
   "description": "FHIR Mapping Language (FML) support and FHIR StructureMap resources validation.",
   "icon": "ext-images/icon.ico",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "aphp",
   "readme": "README.md",
   "author": {
