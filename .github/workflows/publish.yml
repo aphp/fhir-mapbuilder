@@ -28,5 +28,7 @@ jobs:
         run: npm install -g vsce
 
       - name: Publish to Marketplace
-        run: vsce publish -p ${{ secrets.P_A_T }}
+        run: vsce publish -p "$P_A_T"
         working-directory: vscode-extension
+        env:
+          P_A_T: ${{ secrets.P_A_T }}
