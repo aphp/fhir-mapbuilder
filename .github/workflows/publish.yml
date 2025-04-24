@@ -27,11 +27,6 @@ jobs:
       - name: Install vsce
         run: npm install -g vsce
 
-      - name: Debug Token Presence
-        run: echo "Token length = ${#P_A_T}"
-        env:
-          P_A_T: ${{ secrets.P_A_T }}
-
       - name: Publish to Marketplace
         shell: bash
         env:
