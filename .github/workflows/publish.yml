@@ -24,6 +24,23 @@ jobs:
         run: npm run compile
         working-directory: vscode-extension
 
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build JAR with Maven
+        run: mvn clean package
+        working-directory: fhir-mapbuilder-validation
+
+      - name: Ensure target directory exists in extension
+        run: mkdir -p vscode-extension/target
+
+      - name: Move JAR to VS Code extension
+        run: mv fhir-mapbuilder-validation/target/fhir-mapbuilder-validation.jar vscode-extension/target
+
       - name: Install vsce
         run: npm install -g vsce
 
