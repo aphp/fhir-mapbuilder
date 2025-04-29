@@ -77,6 +77,24 @@ mvn spring-boot:run
 1. Open `vscode-extension` in VS Code.
 2. Press `F5` to start a new Extension Development Host.
 
+## ⚙️ GitHub Workflows
+Several GitHub Actions workflows have been set up to automate key parts of the project:
+
+- **Test Workflow** (test.yml)
+
+This workflow runs automatically on every push or pull request targeting the main branch.
+It installs dependencies, compiles TypeScript, and runs the extension's test suite to ensure code quality.
+
+- **Release Workflow** (release.yml)
+
+This workflow is triggered automatically when a new Git tag matching the pattern v* (e.g., v1.0.0) is created.
+It packages the VS Code extension into a .vsix file and attaches it to the corresponding GitHub Release on the Releases page.
+
+- **Publish Workflow** (publish.yml)
+
+A dedicated workflow to automatically publish the VS Code extension to the Visual Studio Marketplace.
+This workflow can be triggered manually via the GitHub Actions tab and uses a secure token to authenticate the publishing process.
+
 ## 📜 License
 
 This project is licensed under the [MIT License](LICENSE.md).
