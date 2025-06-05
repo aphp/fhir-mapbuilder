@@ -3,6 +3,7 @@ import {ApiConstants} from "./constants/ApiConstants";
 import {extensions, OutputChannel, window, workspace, WorkspaceConfiguration} from "vscode";
 import {logData} from "./utils";
 import {UiConstants} from "./constants/UiConstants";
+import path from "path";
 
 export class MapBuilderJavaProcess {
     mapBuilderValidationLogger: OutputChannel;
@@ -45,28 +46,32 @@ export class MapBuilderJavaProcess {
 
     private buildShellCommand() {
         const jarName = this.config.get("jarName") === "" ? "fhir-mapbuilder-validation" : this.config.get("jarName");
-        const command = "java"; // Java executable
+
+        const jarPath = path.join(
+            extensions.getExtension(UiConstants.extensionPublisher)?.extensionPath || "",
+            "target",
+            `${jarName}.jar`
+        );
 
         const args = [
-            `-Dserver.port=${ApiConstants.apiServerPort}`, // Set server port
+            `-Dserver.port=${ApiConstants.apiServerPort}`,
             `-Dfile.encoding=UTF-8`,
             "-jar",
-            `${extensions.getExtension(UiConstants.extensionPublisher)?.extensionPath}\\target\\${jarName}.jar`
+            jarPath
         ];
 
-        let workspaceFolders = workspace.workspaceFolders;
-        if (workspaceFolders && workspaceFolders.length > 0) {
-            const packagePath = `${workspaceFolders[0].uri.fsPath}${UiConstants.packageRelativePath}`;
-            const IncludeWorkingPackage = this.config.get("IncludeWorkingPackage") ?? true;
+        const workspaceFolders = workspace.workspaceFolders;
+        const includeWorkingPackage = this.config.get("IncludeWorkingPackage") ?? true;
 
-            // Add IG package path if needed
-            if (IncludeWorkingPackage) {
-                args.push("-ig", packagePath);
-            }
+        if (workspaceFolders && workspaceFolders.length > 0 && includeWorkingPackage) {
+            const packagePath = path.join(workspaceFolders[0].uri.fsPath, "output", "package.tgz");
+            args.push("-ig", packagePath);
         }
 
-        return {command, args};
+        const command = "java"; // Java executable
+        return { command, args };
     }
+
 
     private extractLogMessage(log: string): string | null {
         const keyword = "Started MatchBoxApplication in";

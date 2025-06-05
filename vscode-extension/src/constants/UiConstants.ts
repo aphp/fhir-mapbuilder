@@ -5,7 +5,6 @@ export class UiConstants {
     public static readonly configName = 'FhirMapBuilder';
     public static readonly principalChannelName = "FhirMapBuilder";
     public static readonly detailsChannelName = "FhirMapBuilderValidation";
-    public static readonly packageRelativePath = "\\output\\package.tgz";
     public static readonly principalChannel = vscode.window.createOutputChannel(UiConstants.principalChannelName);
     public static readonly detailsChannel = vscode.window.createOutputChannel(UiConstants.detailsChannelName);
     public static readonly fmlFilesPathToWatch = '**/*.fml';

@@ -3,7 +3,7 @@ import {ApiConstants} from "./constants/ApiConstants";
 import {OutputChannel, window, workspace} from "vscode";
 import os from "os";
 import {getDataFile, logData} from "./utils";
-import {UiConstants} from "./constants/UiConstants";
+import path from "path";
 
 export class MapBuilderValidationApi {
 
@@ -97,11 +97,13 @@ export class MapBuilderValidationApi {
 
     private buildResetAndLoadEngineUrl(): string {
         let url = ApiConstants.resetAndLoadEngineUrl;
-        let workspaceFolders = workspace.workspaceFolders;
+        const workspaceFolders = workspace.workspaceFolders;
+
         if (workspaceFolders && workspaceFolders.length > 0) {
-            const packagePath = `${workspaceFolders[0].uri.fsPath}${UiConstants.packageRelativePath}`;
+            const packagePath = path.join(workspaceFolders[0].uri.fsPath, "output", "package.tgz");
             url = `${url}?path=${encodeURIComponent(packagePath)}`;
         }
+
         return url;
     }
 
@@ -170,10 +172,9 @@ export class MapBuilderValidationApi {
     private getPackageLoadedSuccessMessage(isLoaded: boolean): string | null {
         let workspaceFolders = workspace.workspaceFolders;
         if (isLoaded && workspaceFolders && workspaceFolders.length > 0) {
-            const packagePath = `${workspaceFolders[0].uri.fsPath}${UiConstants.packageRelativePath}`;
+            const packagePath = path.join(workspaceFolders[0].uri.fsPath, "output", "package.tgz");
             return `New package loading completed successfully. Package path: ${packagePath}`;
         }
         return null;
     }
-
 }

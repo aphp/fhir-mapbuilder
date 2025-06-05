@@ -1,5 +1,8 @@
 # Change Log
 
+# 1.0.4 (2025-06-04)
+* fix [issue-17](https://github.com/aphp/fhir-mapbuilder/issues/17): cross-platform fix
+
 # 1.0.3 (2025-04-24)
 * Fix publish git workflow
 
