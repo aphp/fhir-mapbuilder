@@ -110,19 +110,20 @@ export class MapBuilderValidationApi {
     private buildValidateUrl(): string {
         let url = ApiConstants.validateUrl;
 
-        const outputFolderName = "fml-generated";
-
 
         const sourcePath = this.getSourceFilePath();
 
         url = `${url}?source=${encodeURIComponent(sourcePath)}`;
+
         const dataFile = getDataFile();
         if (dataFile) {
             url = this.appendUrlParameter(url, "data", dataFile);
         }
+
         const outputPath = this.getWorkspacePathOrHomeDir();
         if (outputPath) {
-            const output = `${outputPath}\\${outputFolderName}`;
+            const outputFolderName = "fml-generated";
+            const output = path.join(outputPath, outputFolderName);
             url = this.appendUrlParameter(url, "output", output);
         }
 
@@ -162,13 +163,13 @@ export class MapBuilderValidationApi {
     }
 
     private getSourceFilePath(): string {
-        let targetPath = window.activeTextEditor?.document.uri.path || "";
-        if (targetPath.startsWith("/")) {
-            targetPath = targetPath.slice(1); // Remove leading slash
-        }
-        return targetPath.replaceAll("/", "\\");
-    }
+        const activeDocUri = window.activeTextEditor?.document.uri;
 
+        if (!activeDocUri) return "";
+
+        // Use the fsPath property — it returns the correct platform-native path
+        return activeDocUri.fsPath;
+    }
     private getPackageLoadedSuccessMessage(isLoaded: boolean): string | null {
         let workspaceFolders = workspace.workspaceFolders;
         if (isLoaded && workspaceFolders && workspaceFolders.length > 0) {

@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,14 +47,15 @@ public class MatchBoxService {
     public void setPaths(String outputPath) throws IOException {
         if (outputPath == null) {
             log.error("outputPath is null!");
+            return; // You should exit early to prevent null usage below
         }
 
         String folder = FileUtils.createOrRetrieveFolderPath(outputPath);
         String dateTime = FileUtils.generateDateTimeFormatForPath();
-        paramsPath = folder + "\\" + dateTime + "_params.log";
-        resultPath = folder + "\\" + dateTime + "_result.json";
-        qualityAssessmentPath = folder + "\\" + dateTime + "_qa.json";
 
+        paramsPath = Paths.get(folder, dateTime + "_params.log").toString();
+        resultPath = Paths.get(folder, dateTime + "_result.json").toString();
+        qualityAssessmentPath = Paths.get(folder, dateTime + "_qa.json").toString();
     }
 
     public StructureMap compile(String source) throws CompilationError {
