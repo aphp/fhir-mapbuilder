@@ -11,6 +11,7 @@ import fs from 'fs';
 import {MapBuilderValidationApi} from "./MapBuilderValidationApi";
 import {executeWithProgress, getDataFile, isEmptyOrBlank, logData} from "./utils";
 import {UiConstants} from "./constants/UiConstants";
+import path from "path";
 
 
 export class FmlValidation {
@@ -94,13 +95,12 @@ export class FmlValidation {
 
     }
 
-    private getPackagePath() {
-        let workspaceFolders = workspace.workspaceFolders;
-        let packagePath = "";
+    private getPackagePath(): string {
+        const workspaceFolders = workspace.workspaceFolders;
         if (workspaceFolders && workspaceFolders.length > 0) {
-            packagePath = `${workspaceFolders[0].uri.fsPath}${UiConstants.packageRelativePath}`;
+            return path.join(workspaceFolders[0].uri.fsPath, "output", "package.tgz");
         }
-        return packagePath;
+        return "";
     }
 
     private async chooseFilesAndContinue() {

@@ -3,7 +3,7 @@ import {ApiConstants} from "./constants/ApiConstants";
 import {OutputChannel, window, workspace} from "vscode";
 import os from "os";
 import {getDataFile, logData} from "./utils";
-import {UiConstants} from "./constants/UiConstants";
+import path from "path";
 
 export class MapBuilderValidationApi {
 
@@ -97,30 +97,33 @@ export class MapBuilderValidationApi {
 
     private buildResetAndLoadEngineUrl(): string {
         let url = ApiConstants.resetAndLoadEngineUrl;
-        let workspaceFolders = workspace.workspaceFolders;
+        const workspaceFolders = workspace.workspaceFolders;
+
         if (workspaceFolders && workspaceFolders.length > 0) {
-            const packagePath = `${workspaceFolders[0].uri.fsPath}${UiConstants.packageRelativePath}`;
+            const packagePath = path.join(workspaceFolders[0].uri.fsPath, "output", "package.tgz");
             url = `${url}?path=${encodeURIComponent(packagePath)}`;
         }
+
         return url;
     }
 
     private buildValidateUrl(): string {
         let url = ApiConstants.validateUrl;
 
-        const outputFolderName = "fml-generated";
-
 
         const sourcePath = this.getSourceFilePath();
 
         url = `${url}?source=${encodeURIComponent(sourcePath)}`;
+
         const dataFile = getDataFile();
         if (dataFile) {
             url = this.appendUrlParameter(url, "data", dataFile);
         }
+
         const outputPath = this.getWorkspacePathOrHomeDir();
         if (outputPath) {
-            const output = `${outputPath}\\${outputFolderName}`;
+            const outputFolderName = "fml-generated";
+            const output = path.join(outputPath, outputFolderName);
             url = this.appendUrlParameter(url, "output", output);
         }
 
@@ -160,20 +163,19 @@ export class MapBuilderValidationApi {
     }
 
     private getSourceFilePath(): string {
-        let targetPath = window.activeTextEditor?.document.uri.path || "";
-        if (targetPath.startsWith("/")) {
-            targetPath = targetPath.slice(1); // Remove leading slash
-        }
-        return targetPath.replaceAll("/", "\\");
-    }
+        const activeDocUri = window.activeTextEditor?.document.uri;
 
+        if (!activeDocUri) return "";
+
+        // Use the fsPath property — it returns the correct platform-native path
+        return activeDocUri.fsPath;
+    }
     private getPackageLoadedSuccessMessage(isLoaded: boolean): string | null {
         let workspaceFolders = workspace.workspaceFolders;
         if (isLoaded && workspaceFolders && workspaceFolders.length > 0) {
-            const packagePath = `${workspaceFolders[0].uri.fsPath}${UiConstants.packageRelativePath}`;
+            const packagePath = path.join(workspaceFolders[0].uri.fsPath, "output", "package.tgz");
             return `New package loading completed successfully. Package path: ${packagePath}`;
         }
         return null;
     }
-
 }
