@@ -23,7 +23,7 @@
         <dependency>
             <groupId>health.matchbox</groupId>
             <artifactId>matchbox-engine</artifactId>
-            <version>3.9.12</version>
+            <version>4.0.8</version>
         </dependency>
         <dependency>
             <groupId>ca.uhn.hapi.fhir</groupId>
