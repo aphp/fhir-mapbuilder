@@ -42,9 +42,6 @@ suite('Extension Commands Test Suite', () => {
     let fmlValidationInstance: FmlValidation;
     let mapBuilderWatcherInstance: MapBuilderWatcher;
     let mockApi: MapBuilderValidationApi;
-    let fmlFileWatcherOnStub: sinon.SinonStub;
-    let openFileDialog: sinon.SinonStub;
-
 
     setup(() => {
         showErrorMessageStub = sinon.stub(vscode.window, 'showErrorMessage').resolves(undefined);
@@ -55,12 +52,11 @@ suite('Extension Commands Test Suite', () => {
 
         fmlValidationInstance = new FmlValidation(vscode.window.createOutputChannel('test'), mockApi);
 
-
-        fmlFileWatcherOnStub = sinon.stub();
-
         mapBuilderWatcherInstance = new MapBuilderWatcher(vscode.window.createOutputChannel('test'), mockApi);
 
-        openFileDialog = sinon.stub(fmlValidationInstance, 'openFileDialog').resolves(true);
+        sinon.stub(fmlValidationInstance, 'openFileDialog').resolves(true);
+
+        sinon.stub(fmlValidationInstance, 'isPackagePath').resolves(true);
 
     });
 
@@ -73,6 +69,7 @@ suite('Extension Commands Test Suite', () => {
     test('Commands should be registered', async () => {
         const commands = await vscode.commands.getCommands(true);
         const expectedCommands = [
+            'fhirMapBuilder.InsertTemplate',
             'fhirMapBuilder.Validation',
             'fhirMapBuilder.ValidationWithDefaultFiles',
             'fhirMapBuilder.ValidationAfterLoadingPackage'
@@ -94,7 +91,7 @@ suite('Extension Commands Test Suite', () => {
     });
 
 
-    test.skip('validateWithDefaultFiles should show an error message when validation fails', async () => {
+    test('validateWithDefaultFiles should show an error message when validation fails', async () => {
 
         // Call the validateWithDefaultFiles method
         await fmlValidationInstance.validateWithDefaultFiles();
@@ -114,7 +111,6 @@ suite('Extension Commands Test Suite', () => {
         );
 
     });
-
 
 
     test('validateWithDefaultFiles should show an error message when validation error occured', async () => {
@@ -141,7 +137,7 @@ suite('Extension Commands Test Suite', () => {
     });
 
 
-    test.skip('validateWithPossibilityToChooseFiles should show an error message when validation fails', async () => {
+    test('validateWithPossibilityToChooseFiles should show an error message when validation fails', async () => {
 
 
         await fmlValidationInstance.validateWithPossibilityToChooseFiles();
@@ -155,7 +151,7 @@ suite('Extension Commands Test Suite', () => {
         );
     });
 
-    test.skip('validateWithPossibilityToChooseFiles should show an information success message when validation succeed', async () => {
+    test('validateWithPossibilityToChooseFiles should show an information success message when validation succeed', async () => {
 
 
         await fmlValidationInstance.validateWithPossibilityToChooseFiles();
