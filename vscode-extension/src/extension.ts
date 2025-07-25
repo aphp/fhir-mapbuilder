@@ -11,25 +11,25 @@ import {UiConstants} from "./constants/UiConstants";
 const FML_MODE = {language: 'fml', scheme: 'file'};
 let watcher: MapBuilderWatcher;
 
-export function activate(context: vscode.ExtensionContext): {
-    completionProviderInstance: FmlCompletionProvider | null
-} {
+export async function activate(context: vscode.ExtensionContext): Promise<{
+    completionProviderInstance: FmlCompletionProvider | null;
+}> {
 
     try {
         const principalChannel = UiConstants.principalChannel;
         const detailsChannel = UiConstants.detailsChannel;
 
-        const api = getMapBuilderValidationApi(detailsChannel);
+        const api = await getMapBuilderValidationApi(detailsChannel);
 
         const [, completionProviderInstance] = addAutoComplete(principalChannel, context);
 
         addFMLTemplate(context);
 
-        addValidationCommand(principalChannel, detailsChannel, api, context);
+        addValidationCommand(principalChannel, api, context);
 
-        addValidationWithDefaultFilesCommand(principalChannel, detailsChannel, api, context);
+        addValidationWithDefaultFilesCommand(principalChannel, api, context);
 
-        addValidationAfterLoadingPackageCommand(principalChannel, detailsChannel, api, context);
+        addValidationAfterLoadingPackageCommand(principalChannel, api, context);
 
         addWatcher(detailsChannel, api);
 
@@ -46,15 +46,20 @@ export function deactivate() {
     api.callShutDownProcess();
 }
 
-function getMapBuilderValidationApi(validationOutputChannel: OutputChannel) {
+async function getMapBuilderValidationApi(validationOutputChannel: OutputChannel): Promise<MapBuilderValidationApi> {
     const mapBuilderJavaProcess = new MapBuilderJavaProcess(validationOutputChannel);
 
+    const hasGoodJavaVersion = await mapBuilderJavaProcess.checkJavaVersionAndWarn();
+
     const api = new MapBuilderValidationApi(validationOutputChannel);
-    api.isAppRunning().then(isAppRunning => {
+
+    if (hasGoodJavaVersion) {
+        const isAppRunning = await api.isAppRunning();
         if (!isAppRunning) {
             mapBuilderJavaProcess.start();
         }
-    });
+    }
+
     return api;
 }
 
@@ -82,7 +87,7 @@ function addFMLTemplate(context: vscode.ExtensionContext) {
     }));
 }
 
-function addValidationCommand(outputChannel: OutputChannel, validationOutputChannel: OutputChannel, mapBuilderValidationApi: MapBuilderValidationApi, context: vscode.ExtensionContext) {
+function addValidationCommand(outputChannel: OutputChannel, mapBuilderValidationApi: MapBuilderValidationApi, context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('fhirMapBuilder.Validation', async () => {
 
         const fmlValidation = new FmlValidation(outputChannel, mapBuilderValidationApi);
@@ -90,7 +95,7 @@ function addValidationCommand(outputChannel: OutputChannel, validationOutputChan
     }));
 }
 
-function addValidationWithDefaultFilesCommand(outputChannel: OutputChannel, validationOutputChannel: OutputChannel, mapBuilderValidationApi: MapBuilderValidationApi, context: vscode.ExtensionContext) {
+function addValidationWithDefaultFilesCommand(outputChannel: OutputChannel, mapBuilderValidationApi: MapBuilderValidationApi, context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('fhirMapBuilder.ValidationWithDefaultFiles', async () => {
 
         const fmlValidation = new FmlValidation(outputChannel, mapBuilderValidationApi);
@@ -101,7 +106,6 @@ function addValidationWithDefaultFilesCommand(outputChannel: OutputChannel, vali
 
 function addValidationAfterLoadingPackageCommand(
     outputChannel: OutputChannel,
-    validationOutputChannel: OutputChannel,
     mapBuilderValidationApi: MapBuilderValidationApi,
     context: vscode.ExtensionContext
 ) {

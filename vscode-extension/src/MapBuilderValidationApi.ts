@@ -165,9 +165,9 @@ export class MapBuilderValidationApi {
     private getSourceFilePath(): string {
         const activeDocUri = window.activeTextEditor?.document.uri;
 
-        if (!activeDocUri) return "";
-
-        // Use the fsPath property — it returns the correct platform-native path
+        if (!activeDocUri) {
+            return "";
+        }
         return activeDocUri.fsPath;
     }
     private getPackageLoadedSuccessMessage(isLoaded: boolean): string | null {
