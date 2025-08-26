@@ -53,6 +53,8 @@ After running this command, the JAR file `fhir-mapbuilder-validation.jar` will b
 ### Move the JAR File to the Extension Project
 
 ```sh
+cd ..
+mkdir vscode-extension/target
 mv fhir-mapbuilder-validation/target/fhir-mapbuilder-validation.jar vscode-extension/target
 ```
 
