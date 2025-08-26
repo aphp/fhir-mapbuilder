@@ -1,4 +1,4 @@
-import {spawn} from "node:child_process";
+import {execSync, spawn} from "node:child_process";
 import {ApiConstants} from "./constants/ApiConstants";
 import {extensions, OutputChannel, window, workspace, WorkspaceConfiguration} from "vscode";
 import {logData} from "./utils";
@@ -69,7 +69,7 @@ export class MapBuilderJavaProcess {
         }
 
         const command = "java"; // Java executable
-        return { command, args };
+        return {command, args};
     }
 
 
@@ -77,5 +77,40 @@ export class MapBuilderJavaProcess {
         const keyword = "Started MatchBoxApplication in";
         const index = log.indexOf(keyword);
         return index !== -1 ? log.substring(index) : null;
+    }
+
+    public checkJavaVersionAndWarn(): boolean {
+        try {
+            const outputBuffer = execSync('java -version 2>&1', {encoding: 'utf-8'});
+            const match = outputBuffer.match(/version "(.*?)"/);
+
+            logData(`Java version output: ${outputBuffer}`, this.mapBuilderValidationLogger);
+
+            if (match && match[1]) {
+                const version = match[1];
+                const majorVersion = version.startsWith('1.')
+                    ? parseInt(version.split('.')[1])
+                    : parseInt(version.split('.')[0]);
+
+                if (majorVersion !== 21) {
+                    const msg = `Java version ${version} found, but version 21 is required.`;
+                    window.showErrorMessage(msg);
+                    logData(msg, this.mapBuilderValidationLogger);
+                    return false;
+                }
+
+                return true;
+            } else {
+                const msg = 'Unable to detect Java version. Please ensure Java 21 is installed.';
+                window.showErrorMessage(msg);
+                logData(msg, this.mapBuilderValidationLogger);
+                return false;
+            }
+        } catch (error) {
+            const msg = 'Java JDK not found. Please install Java 21 and ensure it is in your PATH.';
+            window.showErrorMessage(msg);
+            logData(msg, this.mapBuilderValidationLogger);
+            return false;
+        }
     }
 }

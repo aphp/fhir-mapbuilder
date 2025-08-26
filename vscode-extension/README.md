@@ -13,6 +13,14 @@ This extension assists users by offering the following features:
 - FML templates
 - StructureMap validation on test data
 
+### Java 21 Requirement
+This application requires Java Development Kit (JDK) version 21 to run.
+Please ensure that Java 21 is installed and correctly added to your system's PATH.
+#### Installation Tips:
+You can download Java 21 from the official Oracle JDK website or use OpenJDK 21.
+
+After installation, run java -version in your terminal to verify that the correct version is active.
+
 ## FML execution on test data
 This function works thanks to the java package fhir-mapbuilder-validation.jar: the springboot REST API based on
 [the matchbox-engine](https://github.com/ahdis/matchbox), provided in the target folder.

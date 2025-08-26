@@ -37,6 +37,9 @@ fhir-mapbuilder/
 git clone https://github.com/aphp/fhir-mapbuilder.git
 cd fhir-mapbuilder
 ```
+### Java 21 Requirement
+This application requires Java Development Kit (JDK) version 21 to run.
+Please ensure that Java 21 is installed and correctly added to your system's PATH.
 
 ### Build & Package the Java Application
 

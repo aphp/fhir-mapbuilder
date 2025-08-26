@@ -37,18 +37,13 @@ suite('Extension Test Suite', () => {
 
 suite('Extension Commands Test Suite', () => {
 
-    let showWarningMessageStub: sinon.SinonStub;
     let showInformationMessageStub: sinon.SinonStub;
     let showErrorMessageStub: sinon.SinonStub;
     let fmlValidationInstance: FmlValidation;
     let mapBuilderWatcherInstance: MapBuilderWatcher;
     let mockApi: MapBuilderValidationApi;
-    let fmlFileWatcherOnStub: sinon.SinonStub;
-    let openFileDialog: sinon.SinonStub;
-
 
     setup(() => {
-        showWarningMessageStub = sinon.stub(vscode.window, 'showWarningMessage').resolves(undefined);
         showErrorMessageStub = sinon.stub(vscode.window, 'showErrorMessage').resolves(undefined);
         showInformationMessageStub = sinon.stub(window, 'showInformationMessage');
 
@@ -57,12 +52,11 @@ suite('Extension Commands Test Suite', () => {
 
         fmlValidationInstance = new FmlValidation(vscode.window.createOutputChannel('test'), mockApi);
 
-
-        fmlFileWatcherOnStub = sinon.stub();
-
         mapBuilderWatcherInstance = new MapBuilderWatcher(vscode.window.createOutputChannel('test'), mockApi);
 
-        openFileDialog = sinon.stub(fmlValidationInstance, 'openFileDialog').resolves(true);
+        sinon.stub(fmlValidationInstance, 'openFileDialog').resolves(true);
+
+        sinon.stub(fmlValidationInstance, 'isPackagePath').resolves(true);
 
     });
 
@@ -117,7 +111,6 @@ suite('Extension Commands Test Suite', () => {
         );
 
     });
-
 
 
     test('validateWithDefaultFiles should show an error message when validation error occured', async () => {
