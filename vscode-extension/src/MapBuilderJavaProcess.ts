@@ -68,7 +68,7 @@ export class MapBuilderJavaProcess {
             args.push("-ig", packagePath);
         }
 
-        const command = "java"; // Java executable
+        const command = this.config.get<string>("javaExecutablePath") ?? "java"; // Java executable
         return {command, args};
     }
 
