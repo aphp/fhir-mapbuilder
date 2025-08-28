@@ -48,18 +48,11 @@ export function deactivate() {
 
 async function getMapBuilderValidationApi(validationOutputChannel: OutputChannel): Promise<MapBuilderValidationApi> {
     const mapBuilderJavaProcess = new MapBuilderJavaProcess(validationOutputChannel);
-
-    const hasGoodJavaVersion = await mapBuilderJavaProcess.checkJavaVersionAndWarn();
-
     const api = new MapBuilderValidationApi(validationOutputChannel);
-
-    if (hasGoodJavaVersion) {
-        const isAppRunning = await api.isAppRunning();
-        if (!isAppRunning) {
-            mapBuilderJavaProcess.start();
-        }
+    const isAppRunning = await api.isAppRunning();
+    if (!isAppRunning) {
+        mapBuilderJavaProcess.start();
     }
-
     return api;
 }
 
