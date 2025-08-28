@@ -34,7 +34,7 @@
   "main": "./dist/extension.js",
   "contributes": {
     "configuration": {
-      "title": "FhirMapBuilder",
+      "title": "FHIR MapBuilder",
       "properties": {
         "FhirMapBuilder.IncludeWorkingPackage": {
           "type": "boolean",
@@ -58,8 +58,8 @@
         },
         "FhirMapBuilder.javaExecutablePath": {
           "type": "string",
-          "default": "java",
-          "description": "Path to the Java executable used by the extension."
+          "default": "",
+          "description": "Optional path to a specific Java executable. Leave empty to use the system default."
         }
       }
     },
