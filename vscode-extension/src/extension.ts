@@ -19,18 +19,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<{
         const principalChannel = UiConstants.principalChannel;
         const detailsChannel = UiConstants.detailsChannel;
 
-        const api = await getMapBuilderValidationApi(detailsChannel);
-
         const [, completionProviderInstance] = addAutoComplete(principalChannel, context);
 
         addFMLTemplate(context);
 
+        const api = await getMapBuilderValidationApi(detailsChannel);
         addValidationCommand(principalChannel, api, context);
-
         addValidationWithDefaultFilesCommand(principalChannel, api, context);
-
         addValidationAfterLoadingPackageCommand(principalChannel, api, context);
-
         addWatcher(detailsChannel, api);
 
         return {completionProviderInstance};
