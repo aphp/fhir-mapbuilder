@@ -18,7 +18,9 @@ export class MapBuilderJavaProcess {
 
     public start(): void {
         const {command, args} = this.buildShellCommand();
-        if (command === null) return;
+        if (command === null) {
+            return;
+        }
         window.showInformationMessage("Starting matchbox java process");
         logData(`Starting java process - cmd: ${command} ${args.join(" ")}`, this.mapBuilderValidationLogger);
 
