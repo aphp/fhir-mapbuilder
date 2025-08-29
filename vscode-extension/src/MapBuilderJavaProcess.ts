@@ -104,6 +104,7 @@ export class MapBuilderJavaProcess {
             return false;
         }
     
+        logData(`Java version output: ${result.stderr}`, this.mapBuilderValidationLogger);
         const match = result.stderr.match(/version\s+"(\d+)/);
         const version = match ? parseInt(match[1], 10) : null;
         if (!version || version < 21) {
