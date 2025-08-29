@@ -18,6 +18,7 @@ export class MapBuilderJavaProcess {
 
     public start(): void {
         const {command, args} = this.buildShellCommand();
+        if (command === null) return;
         window.showInformationMessage("Starting matchbox java process");
         logData(`Starting java process - cmd: ${command} ${args.join(" ")}`, this.mapBuilderValidationLogger);
 
@@ -116,11 +117,11 @@ export class MapBuilderJavaProcess {
         return true;
     }
 
-    private validateJavaPath(path: string | undefined): string {
+    private validateJavaPath(path: string | undefined): string | null {
         if (path === null || path === undefined || path === '') {
             path = "java";
             if (!this.isJavaValid(path)) {
-                throw(new Error(`${path} is invalid`));
+                return null;
             }
             return path;
         }
@@ -128,20 +129,20 @@ export class MapBuilderJavaProcess {
             const msg = "File does not exist.";
             window.showErrorMessage(msg);
             logData(msg, this.mapBuilderValidationLogger);
-            throw new Error(msg);
+            return null;
         } 
         if (!(this.isFileExecutable(path))) {
             const msg = "File is not executable.";
             window.showErrorMessage(msg);
             logData(msg, this.mapBuilderValidationLogger);
-            throw new Error(msg);
+            return null;
         }
         
         if (this.isJavaValid(path)) {
             return `"${path}"`;   
         }
 
-        throw(new Error(`${path} is invalid`));
+        return null;
     }
 
     private extractLogMessage(log: string): string | null {
