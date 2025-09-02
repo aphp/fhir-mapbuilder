@@ -3,7 +3,7 @@
   "displayName": "FHIR MapBuilder",
   "description": "FHIR Mapping Language (FML) support and FHIR StructureMap resources validation.",
   "icon": "ext-images/icon.ico",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "publisher": "aphp",
   "readme": "README.md",
   "author": {
@@ -34,7 +34,7 @@
   "main": "./dist/extension.js",
   "contributes": {
     "configuration": {
-      "title": "FhirMapBuilder",
+      "title": "FHIR MapBuilder",
       "properties": {
         "FhirMapBuilder.IncludeWorkingPackage": {
           "type": "boolean",
@@ -55,6 +55,11 @@
           "type": "number",
           "default": 9031,
           "description": "Port of the fhir-mapbuilder-validation java springboot REST API"
+        },
+        "FhirMapBuilder.javaExecutablePath": {
+          "type": "string",
+          "default": "",
+          "description": "Optional path to a specific Java executable. Leave empty to use the system default."
         }
       }
     },
@@ -161,5 +166,8 @@
     "sinon": "^19.0.2",
     "tar": "^7.4.3",
     "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "@vscode/vsce": "^3.6.0"
   }
 }

@@ -1,4 +1,5 @@
-import {execSync, spawn} from "node:child_process";
+import {execSync, spawnSync, spawn} from "node:child_process";
+import {existsSync, accessSync, constants} from "fs";
 import {ApiConstants} from "./constants/ApiConstants";
 import {extensions, OutputChannel, window, workspace, WorkspaceConfiguration} from "vscode";
 import {logData} from "./utils";
@@ -6,9 +7,9 @@ import {UiConstants} from "./constants/UiConstants";
 import path from "path";
 
 export class MapBuilderJavaProcess {
+
     mapBuilderValidationLogger: OutputChannel;
     config: WorkspaceConfiguration;
-
 
     constructor(validationOutputChannel: OutputChannel) {
         this.mapBuilderValidationLogger = validationOutputChannel;
@@ -17,6 +18,9 @@ export class MapBuilderJavaProcess {
 
     public start(): void {
         const {command, args} = this.buildShellCommand();
+        if (command === null) {
+            return;
+        }
         window.showInformationMessage("Starting matchbox java process");
         logData(`Starting java process - cmd: ${command} ${args.join(" ")}`, this.mapBuilderValidationLogger);
 
@@ -68,49 +72,84 @@ export class MapBuilderJavaProcess {
             args.push("-ig", packagePath);
         }
 
-        const command = "java"; // Java executable
+        const command = this.validateJavaPath(this.config.get<string>("javaExecutablePath"));
         return {command, args};
     }
 
+    private isFileExists(path: string): boolean {
+        return existsSync(path);
+    }
+
+    private isFileExecutable(path: string): boolean {
+        try {
+            accessSync(path, constants.X_OK);
+            return true;
+        }
+        catch {
+            return process.platform === "win32" && path.endsWith(".exe");
+        }
+    }
+
+    private isJavaValid(path: string): boolean {
+        if (!(path.endsWith("java.exe") || path.endsWith("java"))) {
+            const msg = "File is not a java program.";
+            window.showErrorMessage(msg);
+            logData(msg, this.mapBuilderValidationLogger);
+            return false;
+        }
+    
+        const result = spawnSync(path, ["-version"], { encoding: "utf8" });
+        
+        if (result.error) {
+            const msg = "File is not a valid binary.";
+            window.showErrorMessage(msg);
+            logData(msg, this.mapBuilderValidationLogger);
+            return false;
+        }
+    
+        logData(`Java version output: ${result.stderr}`, this.mapBuilderValidationLogger);
+        const match = result.stderr.match(/version\s+"(\d+)/);
+        const version = match ? parseInt(match[1], 10) : null;
+        if (!version || version < 21) {
+            const msg = `Invalid Java version. Expected >= 21, got ${version ?? "unknown"}`;
+            window.showErrorMessage(msg);
+            logData(msg, this.mapBuilderValidationLogger);
+            return false;
+        }
+        return true;
+    }
+
+    private validateJavaPath(path: string | undefined): string | null {
+        if (path === null || path === undefined || path === '') {
+            path = "java";
+            if (!this.isJavaValid(path)) {
+                return null;
+            }
+            return path;
+        }
+        if (!(this.isFileExists(path))) {
+            const msg = "File does not exist.";
+            window.showErrorMessage(msg);
+            logData(msg, this.mapBuilderValidationLogger);
+            return null;
+        } 
+        if (!(this.isFileExecutable(path))) {
+            const msg = "File is not executable.";
+            window.showErrorMessage(msg);
+            logData(msg, this.mapBuilderValidationLogger);
+            return null;
+        }
+        
+        if (this.isJavaValid(path)) {
+            return `"${path}"`;   
+        }
+
+        return null;
+    }
 
     private extractLogMessage(log: string): string | null {
         const keyword = "Started MatchBoxApplication in";
         const index = log.indexOf(keyword);
         return index !== -1 ? log.substring(index) : null;
-    }
-
-    public checkJavaVersionAndWarn(): boolean {
-        try {
-            const outputBuffer = execSync('java -version 2>&1', {encoding: 'utf-8'});
-            const match = outputBuffer.match(/version "(.*?)"/);
-
-            logData(`Java version output: ${outputBuffer}`, this.mapBuilderValidationLogger);
-
-            if (match && match[1]) {
-                const version = match[1];
-                const majorVersion = version.startsWith('1.')
-                    ? parseInt(version.split('.')[1])
-                    : parseInt(version.split('.')[0]);
-
-                if (majorVersion !== 21) {
-                    const msg = `Java version ${version} found, but version 21 is required.`;
-                    window.showErrorMessage(msg);
-                    logData(msg, this.mapBuilderValidationLogger);
-                    return false;
-                }
-
-                return true;
-            } else {
-                const msg = 'Unable to detect Java version. Please ensure Java 21 is installed.';
-                window.showErrorMessage(msg);
-                logData(msg, this.mapBuilderValidationLogger);
-                return false;
-            }
-        } catch (error) {
-            const msg = 'Java JDK not found. Please install Java 21 and ensure it is in your PATH.';
-            window.showErrorMessage(msg);
-            logData(msg, this.mapBuilderValidationLogger);
-            return false;
-        }
     }
 }

@@ -19,18 +19,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<{
         const principalChannel = UiConstants.principalChannel;
         const detailsChannel = UiConstants.detailsChannel;
 
-        const api = await getMapBuilderValidationApi(detailsChannel);
-
         const [, completionProviderInstance] = addAutoComplete(principalChannel, context);
 
         addFMLTemplate(context);
 
+        const api = await getMapBuilderValidationApi(detailsChannel);
         addValidationCommand(principalChannel, api, context);
-
         addValidationWithDefaultFilesCommand(principalChannel, api, context);
-
         addValidationAfterLoadingPackageCommand(principalChannel, api, context);
-
         addWatcher(detailsChannel, api);
 
         return {completionProviderInstance};
@@ -48,18 +44,11 @@ export function deactivate() {
 
 async function getMapBuilderValidationApi(validationOutputChannel: OutputChannel): Promise<MapBuilderValidationApi> {
     const mapBuilderJavaProcess = new MapBuilderJavaProcess(validationOutputChannel);
-
-    const hasGoodJavaVersion = await mapBuilderJavaProcess.checkJavaVersionAndWarn();
-
     const api = new MapBuilderValidationApi(validationOutputChannel);
-
-    if (hasGoodJavaVersion) {
-        const isAppRunning = await api.isAppRunning();
-        if (!isAppRunning) {
-            mapBuilderJavaProcess.start();
-        }
+    const isAppRunning = await api.isAppRunning();
+    if (!isAppRunning) {
+        mapBuilderJavaProcess.start();
     }
-
     return api;
 }
 
