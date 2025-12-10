@@ -79,7 +79,7 @@ The current \output\package.tgz file (assuming that the user is working on a FHI
 
 * Building the IG is also detected (output/qa.json creation specifically) and lead to the loading of 'output/package.tgz'.
 
-#### Troubleshoting
+#### Troubleshooting
 The FHIR MapBuilder use the output/package.tgz file to configure the matchbox-engine, which is the standardized place to
 store the package in a FIG building process. However, depending on your use case, you may not need such package.
 There is no control for the `Validate StructureMap (Current input)` feature to make it fast to use. If there is no

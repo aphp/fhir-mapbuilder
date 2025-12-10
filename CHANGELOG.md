@@ -1,5 +1,12 @@
 # Change Log
 
+## 1.2.0 (2025-12-10)
+
+Changed
+
+* Bumped Matchbox dependency to latest version to improved FHIR mapping capabilities
+* Bumped the Spring Boot dependency to the latest version to reduce technical debt
+
 ## 1.1.0 (2025-09-01)
 
 Added
