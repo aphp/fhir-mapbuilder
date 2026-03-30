@@ -70,7 +70,8 @@ public class MatchBoxService {
             FileUtils.writeFile(paramsPath, "FML : \n\n" + sm + "\n\n", false);
             log.info("End compiling");
             return sm;
-        } catch (Exception exception) {
+        }
+        catch (Exception exception) {
             throw new CompilationError("Error during compilation process: " + exception.getMessage());
         }
     }
@@ -86,7 +87,8 @@ public class MatchBoxService {
             StructureMap sm = engine.parseMap(content);
             handleExistingResource(sm);
             return sm;
-        } catch (Exception exception) {
+        }
+        catch (Exception exception) {
             throw new ParsingError("Error during parsing process: ", exception);
         }
     }
@@ -99,9 +101,7 @@ public class MatchBoxService {
             final String json = new JsonParser().composeString(structureMap);
             final ByteArrayInputStream stream = new ByteArrayInputStream(json.getBytes());
 
-            final InstanceValidator validator = engine.getValidator(Manager.FhirFormat.JSON);
-            validator.setPolicyAdvisor(new ValidationPolicyAdvisor(ReferenceValidationPolicy.CHECK_VALID));
-            validator.validate(null, messages, stream, Manager.FhirFormat.JSON, new ArrayList<>());
+            engine.getValidator(Manager.FhirFormat.JSON).validate(null, messages, stream, Manager.FhirFormat.JSON, new ArrayList<>());
             final List<ValidationMessage> validate = engine.filterValidationMessages(messages);
 
             // Write the json to a file to ensure the persistence of the information if we need to persist information
@@ -109,7 +109,8 @@ public class MatchBoxService {
                 FileUtils.writeFile(qualityAssessmentPath, FileUtils.serializeListObject(validate), false);
             }
 
-        } catch (Exception exception) {
+        }
+        catch (Exception exception) {
             throw new ValidationError("Error during validation process inside method doValidation");
         }
     }
@@ -126,7 +127,8 @@ public class MatchBoxService {
 
             log.info("End of transformation");
             log.info("All files can be found inside " + FileUtils.createOrRetrieveFolderPath(output));
-        } catch (Exception exception) {
+        }
+        catch (Exception exception) {
             FileUtils.writeFile(this.resultPath, "Error during transformation process inside method doTransformation " + exception, false);
             throw new TransformationError("Error during transformation process inside method doTransformation " + exception);
         }
@@ -138,7 +140,8 @@ public class MatchBoxService {
             if (result) {
                 log.info("Packages included successfully.");
             }
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             log.error("Error loading packages, message: {}", e.getMessage());
         }
     }
@@ -186,7 +189,8 @@ public class MatchBoxService {
             try (InputStream inputStream = new FileSystemResource(igPath).getInputStream()) {
                 engine.loadPackage(inputStream);
                 success = true;
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 log.error("Error loading package from output folder. IG path: {}", igPath, e);
             }
         }
@@ -196,7 +200,7 @@ public class MatchBoxService {
     private void handleExistingResource(StructureMap sm) {
         if (engine.getContext().hasResource(org.hl7.fhir.r5.model.StructureMap.class, sm.getUrl())) {
             engine.getContext().dropResource(
-                    engine.getContext().fetchResource(org.hl7.fhir.r5.model.StructureMap.class, sm.getUrl())
+                engine.getContext().fetchResource(org.hl7.fhir.r5.model.StructureMap.class, sm.getUrl())
             );
         }
         engine.addCanonicalResource(sm);

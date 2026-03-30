@@ -1,5 +1,13 @@
 # Change Log
 
+## 1.3.0 (2026-03-31)
+
+Changed
+
+* Bumped Matchbox dependency to 4.0.20 version
+* Bumped the Spring Boot dependency to 3.5.13 version to reduce technical debt
+
+
 ## 1.2.0 (2025-12-10)
 
 Changed
