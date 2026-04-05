@@ -12,7 +12,6 @@ node_modules
 *.vsix
 *.jar
 vsc-extension-quickstart*
-package-lock.json
 dist
 dist/
 */dist/
