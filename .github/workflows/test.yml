@@ -6,25 +6,33 @@ on:
   pull_request:
     branches: [ main ]
 
+# Annule les runs en cours si un nouveau push arrive sur la même branche/PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read  # Lecture seule suffisante pour les tests
+
 jobs:
   test:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [ 20.11.1 ]
-
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          # Lit engines.node depuis package.json — pas de version en dur, pas de matrix inutile
+          node-version-file: vscode-extension/package.json
+          cache: npm
+          cache-dependency-path: vscode-extension/package-lock.json
 
       - name: Install dependencies
-        run: npm install
+        # npm ci : installation déterministe depuis package-lock.json
+        run: npm ci
         working-directory: vscode-extension
 
       - name: Compile TypeScript

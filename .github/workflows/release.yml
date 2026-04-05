@@ -3,7 +3,11 @@ name: Package and Release VS Code Extension
 on:
   push:
     tags:
-      - 'v*'  # Triggers on tags like v1.0.0, v2.3.1, etc.
+      - 'v*'  # Déclenché sur les tags v1.0.0, v2.3.1, etc.
+
+# Principe du moindre privilège : seules les permissions nécessaires sont accordées
+permissions:
+  contents: write  # Requis pour créer la GitHub Release
 
 jobs:
   release:
@@ -11,47 +15,48 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 20.11.1
+          # Lit la contrainte engines.node du package.json — plus de version en dur
+          node-version-file: vscode-extension/package.json
+          cache: npm
+          cache-dependency-path: vscode-extension/package-lock.json
 
-      - name: Install dependencies
-        run: npm install
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Install Node dependencies
+        # npm ci garantit une installation strictement reproductible depuis package-lock.json
+        run: npm ci
         working-directory: vscode-extension
 
       - name: Run tests (with xvfb)
         run: xvfb-run -a npm test
         working-directory: vscode-extension
 
-      - name: Set up Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-
       - name: Build JAR with Maven
-        run: mvn clean package
+        run: mvn --batch-mode --no-transfer-progress clean package
         working-directory: fhir-mapbuilder-validation
 
-      - name: Ensure target directory exists in extension
-        run: mkdir -p vscode-extension/target
-
       - name: Move JAR to VS Code extension
-        run: mv fhir-mapbuilder-validation/target/fhir-mapbuilder-validation.jar vscode-extension/target
-
-      - name: Install vsce
-        run: npm install -g vsce
+        run: |
+          mkdir -p vscode-extension/target
+          mv fhir-mapbuilder-validation/target/fhir-mapbuilder-validation.jar vscode-extension/target
 
       - name: Package extension
-        run: vsce package --baseImagesUrl=https://raw.githubusercontent.com/aphp/fhir-mapbuilder/refs/heads/main/vscode-extension
+        # vsce est dans devDependencies — pas besoin d'un install -g séparé
+        run: npx vsce package --baseImagesUrl=https://raw.githubusercontent.com/aphp/fhir-mapbuilder/refs/heads/main/vscode-extension
         working-directory: vscode-extension
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: vscode-extension/*.vsix
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          generate_release_notes: true  # Génère automatiquement les notes de release depuis les commits

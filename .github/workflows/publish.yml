@@ -3,50 +3,51 @@ name: Publish VS Code Extension
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read  # Lecture seule — la publication se fait via le token Marketplace, pas GITHUB_TOKEN
+
 jobs:
   publish:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 20.11.1
+          node-version-file: vscode-extension/package.json
+          cache: npm
+          cache-dependency-path: vscode-extension/package-lock.json
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
         working-directory: vscode-extension
 
       - name: Compile TypeScript
         run: npm run compile
         working-directory: vscode-extension
 
-
-      - name: Set up Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-
       - name: Build JAR with Maven
-        run: mvn clean package
+        run: mvn --batch-mode --no-transfer-progress clean package
         working-directory: fhir-mapbuilder-validation
 
-      - name: Ensure target directory exists in extension
-        run: mkdir -p vscode-extension/target
-
       - name: Move JAR to VS Code extension
-        run: mv fhir-mapbuilder-validation/target/fhir-mapbuilder-validation.jar vscode-extension/target
-
-      - name: Install vsce
-        run: npm install -g vsce
+        run: |
+          mkdir -p vscode-extension/target
+          mv fhir-mapbuilder-validation/target/fhir-mapbuilder-validation.jar vscode-extension/target
 
       - name: Publish to Marketplace
-        shell: bash
         env:
+          # Secret PAT dédié à la publication sur le VS Code Marketplace
           P_A_T: ${{ secrets.P_A_T }}
-        run: vsce publish -p "$P_A_T" --baseImagesUrl=https://raw.githubusercontent.com/aphp/fhir-mapbuilder/refs/heads/main/vscode-extension
+        run: npx vsce publish -p "$P_A_T" --baseImagesUrl=https://raw.githubusercontent.com/aphp/fhir-mapbuilder/refs/heads/main/vscode-extension
         working-directory: vscode-extension
