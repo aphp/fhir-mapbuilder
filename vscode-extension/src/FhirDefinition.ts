@@ -151,8 +151,8 @@ export class FhirDefinition {
                     if (!fileSystem.existsSync(path.join(this.cachePath, packageKey))) {
                         download = downloadFHIRPackage(this.logger, this.packagesRegistry, `${dependency.packageId}`, `${resolvedVersion}`);
                         if (download) {
-                            let packageInput = path.join(os.homedir(), '.fhir', `${dependency.packageId}-${resolvedVersion}.tgz`);
-                            let packageOutput = path.join(os.homedir(), '.fhir', 'packages', packageKey);
+                            const packageInput = path.join(os.homedir(), '.fhir', `${dependency.packageId}-${resolvedVersion}.tgz`);
+                            const packageOutput = path.join(os.homedir(), '.fhir', 'packages', packageKey);
                             await extractTGZ(this.logger, packageInput, packageOutput);
                         }
                     }
@@ -245,7 +245,7 @@ export class FhirDefinition {
     }
 
     private async getPackagesRegistry(): Promise<string[]> {
-        let registers: string[] = [];
+        const registers: string[] = [];
 
         //Add the 2 official registers
         registers.push("http://packages.fhir.org/");
@@ -253,10 +253,10 @@ export class FhirDefinition {
 
         //Retrieve fhir-settings
         if (fs.existsSync(path.join(os.homedir(), '.fhir', 'fhir-settings.json'))) {
-            let settingsContents = await workspace.fs.readFile(Uri.file(path.join(os.homedir(), '.fhir', 'fhir-settings.json')));
-            let decoder = new TextDecoder();
-            let decodedSettings = decoder.decode(settingsContents);
-            let parsedSettings = YAML.parse(decodedSettings);
+            const settingsContents = await workspace.fs.readFile(Uri.file(path.join(os.homedir(), '.fhir', 'fhir-settings.json')));
+            const decoder = new TextDecoder();
+            const decodedSettings = decoder.decode(settingsContents);
+            const parsedSettings = YAML.parse(decodedSettings);
 
             // TODO : correct error
             parsedSettings["servers"].forEach((elem: FhirSettings) => {

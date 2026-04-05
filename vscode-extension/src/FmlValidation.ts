@@ -49,7 +49,7 @@ export class FmlValidation {
         logData('Start validation', this.logger);
         this.initConfig();
         await this.checkPackagePathWarningMessage();
-        let {editor, keepGoing} = await this.chooseFilesAndContinue();
+        const {editor, keepGoing} = await this.chooseFilesAndContinue();
         if (editor && keepGoing) {
             await this.performValidation();
         }
@@ -104,7 +104,7 @@ export class FmlValidation {
     }
 
     private async chooseFilesAndContinue() {
-        let editor = window.activeTextEditor;
+        const editor = window.activeTextEditor;
         const keepGoing = await this.openFileDialog();
 
         return {editor, keepGoing};
@@ -118,17 +118,17 @@ export class FmlValidation {
     }
 
     public async openFileDialog(): Promise<boolean> {
-        let options: OpenDialogOptions = {
+        const options: OpenDialogOptions = {
             canSelectMany: false,
             filters: {
                 'Json': ['json']
             }
         };
 
-        let fileUri = await window.showOpenDialog(options);
+        const fileUri = await window.showOpenDialog(options);
 
         if (fileUri && fileUri[0]) {
-            let filePath = fileUri[0].fsPath;
+            const filePath = fileUri[0].fsPath;
             await this.config.update("dataFile", filePath, ConfigurationTarget.Global);
             this.config = workspace.getConfiguration(UiConstants.configName);
             return true;

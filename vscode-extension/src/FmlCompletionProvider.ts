@@ -71,13 +71,13 @@ export class FmlCompletionProvider implements CompletionItemProvider {
     fmlFiles.forEach(fmlFile => {
       this.userDefinitions.set(fmlFile, []);
       const fileText = fs.readFileSync(fmlFile).toString();    
-      let allLines = retrieveAllLines(this.logger, fmlFile);
-      let lines = retrieveLines(this.logger, allLines, 'uses');
+      const allLines = retrieveAllLines(this.logger, fmlFile);
+      const lines = retrieveLines(this.logger, allLines, 'uses');
       if (lines.length > 0) {
         lines.forEach(line => {
-          let [urlLine, aliasLine, asLine] = retrieveUrlAliasAs(this.logger, line);
-          let typeLine = retrieveType(this.logger, urlLine);
-          let userDef : UserDefinition = {
+          const [urlLine, aliasLine, asLine] = retrieveUrlAliasAs(this.logger, line);
+          const typeLine = retrieveType(this.logger, urlLine);
+          const userDef : UserDefinition = {
             url : urlLine,
             alias : aliasLine === '' ? typeLine : aliasLine,
             as : asLine,
@@ -87,13 +87,13 @@ export class FmlCompletionProvider implements CompletionItemProvider {
         });
       }
 
-      let groupLine = retrieveLines(this.logger, allLines, 'group');
+      const groupLine = retrieveLines(this.logger, allLines, 'group');
       if(groupLine.length > 0) {
         // Hope for only one group definition per file
-        let returnLines = retrieveSourceAndTargetFromGroupLine(this.logger, groupLine[0]);
+        const returnLines = retrieveSourceAndTargetFromGroupLine(this.logger, groupLine[0]);
         returnLines.forEach(line => {
-          let [name, alias, element] = retrieveNameAndAlias(this.logger, line);
-          let objToUpdate = this.userDefinitions.get(fmlFile)?.find(obj => obj.as === element && obj.alias === alias);
+          const [name, alias, element] = retrieveNameAndAlias(this.logger, line);
+          const objToUpdate = this.userDefinitions.get(fmlFile)?.find(obj => obj.as === element && obj.alias === alias);
           if (objToUpdate) {
             objToUpdate.name = name;
           }
@@ -121,8 +121,8 @@ export class FmlCompletionProvider implements CompletionItemProvider {
         const linePrefix = document.lineAt(position).text.substring(0, position.character);
 
         // get file and source/target available for this file
-        let fmlFile = document.fileName;
-        let userDef = this.userDefinitions.get(fmlFile);
+        const fmlFile = document.fileName;
+        const userDef = this.userDefinitions.get(fmlFile);
 
         if(userDef){
           sourceName = userDef.find(elem => elem.as === 'source' && elem.name !== '')?.name ?? '';
@@ -186,13 +186,13 @@ export class FmlCompletionProvider implements CompletionItemProvider {
         }
 
         this.userDefinitions.set(fmlFile, []);
-        let allLines = retrieveAllLines(this.logger, fmlFile);
-        let lines = retrieveLines(this.logger, allLines, 'uses');
+        const allLines = retrieveAllLines(this.logger, fmlFile);
+        const lines = retrieveLines(this.logger, allLines, 'uses');
         if (lines.length > 0) {
           lines.forEach(line => {
-            let [urlLine, aliasLine, asLine] = retrieveUrlAliasAs(this.logger, line);
-            let typeLine = retrieveType(this.logger, urlLine);
-            let userDef : UserDefinition = {
+            const [urlLine, aliasLine, asLine] = retrieveUrlAliasAs(this.logger, line);
+            const typeLine = retrieveType(this.logger, urlLine);
+            const userDef : UserDefinition = {
               url : urlLine,
               alias : aliasLine === '' ? typeLine : aliasLine,
               as : asLine,
@@ -202,13 +202,13 @@ export class FmlCompletionProvider implements CompletionItemProvider {
           });
         }
 
-        let groupLine = retrieveLines(this.logger, allLines, 'group');
+        const groupLine = retrieveLines(this.logger, allLines, 'group');
         if(groupLine.length > 0) {
           // Hope for only one group definition per file
-          let returnLines = retrieveSourceAndTargetFromGroupLine(this.logger, groupLine[0]);
+          const returnLines = retrieveSourceAndTargetFromGroupLine(this.logger, groupLine[0]);
           returnLines.forEach(line => {
-            let [name, alias, element] = retrieveNameAndAlias(this.logger, line);
-            let objToUpdate = this.userDefinitions.get(fmlFile)?.find(obj => obj.as === element && obj.alias === alias);
+            const [name, alias, element] = retrieveNameAndAlias(this.logger, line);
+            const objToUpdate = this.userDefinitions.get(fmlFile)?.find(obj => obj.as === element && obj.alias === alias);
             if (objToUpdate) {
               objToUpdate.name = name;
             }

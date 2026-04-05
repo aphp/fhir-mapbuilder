@@ -105,7 +105,7 @@ export function retrieveAllLines(logger: OutputChannel, fmlFile: string): string
 
 export function retrieveLines(logger: OutputChannel, lines: string[], startString: string): string[] {
   logger.appendLine(`${(new Date()).toLocaleString('fr-FR')} : Start retrieveLines`);
-  let returnLines: string[] = [];
+  const returnLines: string[] = [];
   lines.forEach((line) => {
     if (line.startsWith(startString)) {
       returnLines.push(line);
@@ -121,7 +121,7 @@ export function retrieveSourceAndTargetFromGroupLine(logger: OutputChannel, grou
   const match = groupLine.match(regex);
   let parenthesisString = '';
   let splitParenthesisString: any[];
-  let returnLines: string[] = [];
+  const returnLines: string[] = [];
 
   if (match && match[1]) {
     parenthesisString = match[1];
@@ -196,7 +196,7 @@ export function retrieveType(logger: OutputChannel, url: string): string {
 export async function getAllParamsFromUrl(logger: OutputChannel, url: string, definitionProvider: FhirDefinition): Promise<CompletionItem[]> {
   logger.appendLine(`${(new Date()).toLocaleString('fr-FR')} : Start getAllParamsFromUrl`);
 
-  let completionItemList: CompletionItem[] = [];
+  const completionItemList: CompletionItem[] = [];
 
   if (url === '') {
     logger.appendLine(`${(new Date()).toLocaleString('fr-FR')} : Error url empty`);

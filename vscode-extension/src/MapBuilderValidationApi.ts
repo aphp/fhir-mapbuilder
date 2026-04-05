@@ -171,7 +171,7 @@ export class MapBuilderValidationApi {
         return activeDocUri.fsPath;
     }
     private getPackageLoadedSuccessMessage(isLoaded: boolean): string | null {
-        let workspaceFolders = workspace.workspaceFolders;
+        const workspaceFolders = workspace.workspaceFolders;
         if (isLoaded && workspaceFolders && workspaceFolders.length > 0) {
             const packagePath = path.join(workspaceFolders[0].uri.fsPath, "output", "package.tgz");
             return `New package loading completed successfully. Package path: ${packagePath}`;
