@@ -1,5 +1,12 @@
 # Change Log
 
+## 1.4.0 (2026-04-05)
+
+Changed
+
+* Bumped Matchbox dependency to 4.1.1 version
+
+
 ## 1.3.0 (2026-03-31)
 
 Changed
