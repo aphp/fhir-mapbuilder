@@ -12,8 +12,8 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         
         <commons.io.version>2.17.0</commons.io.version>
-        <fhir.core.version>6.9.1</fhir.core.version>
-        <health.matchbox.version>4.0.20</health.matchbox.version>
+        <fhir.core.version>6.9.4</fhir.core.version>
+        <health.matchbox.version>4.1.1</health.matchbox.version>
     </properties>
 
     <parent>
@@ -24,7 +24,7 @@
 
     <groupId>fr.aphp</groupId>
     <artifactId>fhir-mapbuilder-validation</artifactId>
-    <version>1.3.0</version>
+    <version>1.4.0</version>
 
     <dependencies>
         <!-- Spring Boot Web Starter -->
