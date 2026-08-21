@@ -16,3 +16,4 @@ dist
 dist/
 */dist/
 */target/
+*/*.local.json
