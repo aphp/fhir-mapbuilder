@@ -11,9 +11,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         
-        <commons.io.version>2.17.0</commons.io.version>
-        <fhir.core.version>6.9.4</fhir.core.version>
-        <health.matchbox.version>4.1.1</health.matchbox.version>
+        <commons.io.version>2.22.0</commons.io.version>
+        <fhir.core.version>6.10.0</fhir.core.version>
+        <health.matchbox.version>4.1.13</health.matchbox.version>
     </properties>
 
     <parent>
