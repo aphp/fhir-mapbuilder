@@ -1,0 +1,35 @@
+name: Run Tests Java Validation Service
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# Annule les runs en cours si un nouveau push arrive sur la même branche/PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read  # Lecture seule suffisante pour les tests
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: fhir-mapbuilder-validation/pom.xml
+
+      - name: Build and test
+        run: mvn -B verify
+        working-directory: fhir-mapbuilder-validation
