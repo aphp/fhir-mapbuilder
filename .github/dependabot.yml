@@ -4,6 +4,12 @@ updates:
     directory: "/fhir-mapbuilder-validation"
     schedule:
       interval: "weekly"
+    ignore:
+      # fhir.core.version must stay whatever version health.matchbox:matchbox-engine
+      # itself requires — never bumped independently, or the two can drift out of
+      # compatibility. Bump it by hand alongside a matchbox-engine version bump instead.
+      - dependency-name: "ca.uhn.hapi.fhir:org.hl7.fhir.r4"
+      - dependency-name: "ca.uhn.hapi.fhir:org.hl7.fhir.r5"
 
   - package-ecosystem: "npm"
     directory: "/vscode-extension"
