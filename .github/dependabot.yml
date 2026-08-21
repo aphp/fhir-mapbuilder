@@ -10,6 +10,11 @@ updates:
       # compatibility. Bump it by hand alongside a matchbox-engine version bump instead.
       - dependency-name: "ca.uhn.hapi.fhir:org.hl7.fhir.r4"
       - dependency-name: "ca.uhn.hapi.fhir:org.hl7.fhir.r5"
+      # Spring Boot 4 migration deferred (wayfinder map #48, decision ticket #50):
+      # small effort, no blocker found, just not scheduled yet. Still take
+      # minor/patch updates within the 3.x line automatically.
+      - dependency-name: "org.springframework.boot:spring-boot-starter-parent"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "npm"
     directory: "/vscode-extension"
