@@ -1,5 +1,18 @@
 # Change Log
 
+## 1.5.0 (2026-08-21)
+
+Changed
+
+* Bumped Matchbox dependency to 4.1.13 version
+* Bumped hapi-fhir-core (org.hl7.fhir.r4/r5) to 6.10.0, resolving two security advisories (GHSA-7cmj-v6x8-frvv, GHSA-3653-68v6-rq57 — ReDoS in FHIRPath matches()/replaceMatches())
+* Bumped commons-io to 2.22.0
+
+Added
+
+* Java build and test workflow in CI (previously only the VS Code extension was built/tested)
+* Dependabot version-update configuration for the Maven and npm dependency ecosystems
+
 ## 1.4.0 (2026-04-05)
 
 Changed

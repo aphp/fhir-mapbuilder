@@ -37,7 +37,9 @@ fhir-mapbuilder/
 git clone https://github.com/aphp/fhir-mapbuilder.git
 cd fhir-mapbuilder
 ```
+
 ### Java 21 Requirement
+
 This application requires Java Development Kit (JDK) version 21 to run.
 Please ensure that Java 21 is installed and correctly added to your system's PATH.
 
@@ -83,6 +85,7 @@ mvn spring-boot:run
 2. Press `F5` to start a new Extension Development Host.
 
 ## ⚙️ GitHub Workflows
+
 Several GitHub Actions workflows have been set up to automate key parts of the project:
 
 - **Test Workflow** (test.yml)
@@ -103,4 +106,3 @@ This workflow can be triggered manually via the GitHub Actions tab and uses a se
 ## 📜 License
 
 This project is licensed under the [MIT License](LICENSE.md).
-
