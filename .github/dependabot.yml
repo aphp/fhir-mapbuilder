@@ -20,3 +20,9 @@ updates:
     directory: "/vscode-extension"
     schedule:
       interval: "weekly"
+    ignore:
+      # @types/vscode's minor version tracks the VS Code release it targets, so
+      # bumping it ahead of engines.vscode makes `vsce package` fail with
+      # "@types/vscode greater than engines.vscode". Bump it by hand alongside
+      # an engines.vscode bump instead.
+      - dependency-name: "@types/vscode"
