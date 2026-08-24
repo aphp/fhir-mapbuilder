@@ -60,6 +60,7 @@ export class MapBuilderJavaProcess {
         const args = [
             `-Dserver.port=${ApiConstants.apiServerPort}`,
             `-Dfile.encoding=UTF-8`,
+            ...this.getJavaVmArgs(),
             "-jar",
             jarPath
         ];
@@ -74,6 +75,11 @@ export class MapBuilderJavaProcess {
 
         const command = this.validateJavaPath(this.config.get<string>("javaExecutablePath"));
         return {command, args};
+    }
+
+    private getJavaVmArgs(): string[] {
+        const javaVmArgs = this.config.get<string>("javaVmArgs") ?? "";
+        return javaVmArgs.split(/\s+/).filter((arg) => arg.length > 0);
     }
 
     private isFileExists(path: string): boolean {
