@@ -79,6 +79,11 @@ The current \output\package.tgz file (assuming that the user is working on a FHI
 
 * Building the IG is also detected (output/qa.json creation specifically) and lead to the loading of 'output/package.tgz'.
 
+#### Configuration
+The `FhirMapBuilder.javaVmArgs` setting lets you pass extra JVM arguments to the matchbox java process (inserted
+before `-jar`), notably memory settings such as `-Xmx4g -Xms512m` if the engine runs out of heap on large packages.
+Leave it empty to use the JVM defaults.
+
 #### Troubleshooting
 The FHIR MapBuilder use the output/package.tgz file to configure the matchbox-engine, which is the standardized place to
 store the package in a FIG building process. However, depending on your use case, you may not need such package.
@@ -86,6 +91,16 @@ There is no control for the `Validate StructureMap (Current input)` feature to m
 package while it should, the validation won't success (of course). In such scenario, you'll find a message in the error
 output file with the `"messageId": "TYPE_SPECIFIC_CHECKS_DT_CANONICAL_RESOLVE"`. This error also happen if the wrong
 package is loaded.
+
+**Out of memory / heap errors**: prefer setting `FhirMapBuilder.javaVmArgs` (e.g. `-Xmx4g`) as described above. Until
+that setting is available (older extension versions), a workaround is to set a persistent `JAVA_TOOL_OPTIONS`
+environment variable for your Windows user account, which every JVM picks up automatically:
+```powershell
+[System.Environment]::SetEnvironmentVariable("JAVA_TOOL_OPTIONS", "-Xmx4g", "User")
+```
+This applies to all Java processes run by your user account (not just this extension) and requires a restart of
+VS Code (or a re-login) to take effect. Remove it with the same command using an empty string once
+`FhirMapBuilder.javaVmArgs` covers your needs.
 
 ## Templates
 
