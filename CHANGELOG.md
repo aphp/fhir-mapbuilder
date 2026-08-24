@@ -1,5 +1,16 @@
 # Change Log
 
+## 1.6.0 (2026-08-24)
+
+Added
+
+* `FhirMapBuilder.javaVmArgs` setting to pass extra JVM arguments (e.g. `-Xmx4g`) to the matchbox java process, to configure heap memory without patching the extension
+* `vsce package` step in the test workflow, catching packaging issues (e.g. `@types/vscode`/`engines.vscode` mismatches) on every PR
+
+Fixed
+
+* Pinned `@types/vscode` back to `engines.vscode`'s minimum (1.91.0), fixing a `vsce package` failure introduced by an automated dependency bump
+
 ## 1.5.0 (2026-08-21)
 
 Changed
