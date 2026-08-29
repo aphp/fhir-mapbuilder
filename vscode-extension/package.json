@@ -159,7 +159,7 @@
     "test": "vscode-test"
   },
   "dependencies": {
-    "axios": "^1.13.5",
+    "axios": "^1.20.0",
     "semver": "^7.8.5",
     "tar": "^7.5.11",
     "typescript-eslint": "^8.58.0",
