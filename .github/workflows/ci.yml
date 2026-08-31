@@ -44,6 +44,28 @@ jobs:
         run: npx prettier --check "src/**/*.ts"
         working-directory: vscode-extension
 
+  lint-java:
+    name: lint-java
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: fhir-mapbuilder-validation/pom.xml
+
+      - name: Spotless + SpotBugs
+        # `compile` d'abord : sans target/classes, spotbugs:check passe à vide.
+        run: mvn -B compile spotless:check spotbugs:check
+        working-directory: fhir-mapbuilder-validation
+
   typecheck:
     name: typecheck
     runs-on: ubuntu-latest
