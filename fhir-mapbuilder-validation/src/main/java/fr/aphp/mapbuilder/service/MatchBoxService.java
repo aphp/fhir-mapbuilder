@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -96,7 +97,7 @@ public class MatchBoxService {
             final List<ValidationMessage> messages = new ArrayList<>();
 
             final String json = new JsonParser().composeString(structureMap);
-            final ByteArrayInputStream stream = new ByteArrayInputStream(json.getBytes());
+            final ByteArrayInputStream stream = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
 
             engine.getValidator(Manager.FhirFormat.JSON).validate(null, messages, stream, Manager.FhirFormat.JSON, new ArrayList<>());
             final List<ValidationMessage> validate = engine.filterValidationMessages(messages);
