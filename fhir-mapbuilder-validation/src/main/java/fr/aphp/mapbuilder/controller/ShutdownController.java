@@ -18,13 +18,14 @@ public class ShutdownController {
     @GetMapping("/shutdown")
     public String shutdownApplication() {
         new Thread(() -> {
-            try {
-                Thread.sleep(1000); // Delay for graceful shutdown
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-            context.close(); // Close the application context
-        }).start();
+                    try {
+                        Thread.sleep(1000); // Delay for graceful shutdown
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                    context.close(); // Close the application context
+                })
+                .start();
 
         return "Application is shutting down...";
     }

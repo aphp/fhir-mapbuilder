@@ -45,5 +45,4 @@ public class MatchBoxApplication {
     public static boolean isInitializationComplete() {
         return initializationComplete;
     }
-
 }

@@ -2,7 +2,6 @@ package fr.aphp.mapbuilder.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,11 +15,11 @@ public class FileUtils {
 
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(FileUtils.class);
 
-    // method that create folder if he doesn't exist or just send back the path (initial dev : method add folder name to path)
+    // method that create folder if he doesn't exist or just send back the path (initial dev : method add folder name to
+    // path)
     public static String createOrRetrieveFolderPath(String path) throws IOException {
         Path folderPath = Path.of(path);
-        if (Files.notExists(folderPath))
-            Files.createDirectories(folderPath);
+        if (Files.notExists(folderPath)) Files.createDirectories(folderPath);
 
         return folderPath.toString();
     }
@@ -33,12 +32,12 @@ public class FileUtils {
     }
 
     // method that wrote a file, append parameter give opportunity to not erase file given in parameter
-    public static void writeFile(final String pathToFile, final String stringToWrite, final boolean append) throws IOException {
+    public static void writeFile(final String pathToFile, final String stringToWrite, final boolean append)
+            throws IOException {
         final Path filePath = Paths.get(pathToFile);
 
         if (!append) {
-            if (Files.exists(filePath))
-                Files.delete(filePath);
+            if (Files.exists(filePath)) Files.delete(filePath);
 
             Files.writeString(filePath, stringToWrite);
         } else {

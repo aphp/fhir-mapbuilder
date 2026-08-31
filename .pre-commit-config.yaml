@@ -32,3 +32,11 @@ repos:
         entry: npm --prefix vscode-extension run lint:fix
         files: ^vscode-extension/src/.*\.ts$
         pass_filenames: false
+      # Formatage Java : palantir-java-format via Spotless. Idempotent ;
+      # `spotless:check` (lié à `verify`) reste la barrière en CI.
+      - id: spotless-apply
+        name: spotless:apply (fhir-mapbuilder-validation)
+        language: system
+        entry: mvn -q -f fhir-mapbuilder-validation/pom.xml spotless:apply
+        types_or: [java]
+        pass_filenames: false

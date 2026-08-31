@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Filtre d'exclusion SpotBugs — garder minimal.
+  Chaque entrée cible un motif structurel du framework (injection Spring,
+  drapeau de démarrage, catch-all de domaine), pas un bug métier. Toute
+  nouvelle exclusion doit être scopée à une classe/méthode et commentée.
+-->
+<FindBugsFilter>
+
+    <!-- Dépendances injectées par le conteneur Spring (singletons gérés).
+         Une copie défensive n'aurait aucun sens et MatchboxEngine /
+         ConfigurableApplicationContext ne sont pas clonables. Motif standard
+         sur du code à injection par constructeur. -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+        <Or>
+            <Class name="fr.aphp.mapbuilder.controller.MatchBoxController"/>
+            <Class name="fr.aphp.mapbuilder.controller.ShutdownController"/>
+            <Class name="fr.aphp.mapbuilder.service.MatchBoxService"/>
+        </Or>
+    </Match>
+
+    <!-- Drapeau de disponibilité de l'application : écrit une seule fois au
+         démarrage (main + ContextRefreshedEvent), lu par /health. Pas de
+         concurrence d'écriture. -->
+    <Match>
+        <Class name="fr.aphp.mapbuilder.MatchBoxApplication"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_STATIC_REP2"/>
+            <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD"/>
+        </Or>
+    </Match>
+
+    <!-- Catch-all volontaire : toute défaillance du moteur Matchbox est
+         remballée en erreur de domaine (ValidationError) pour le contrôleur. -->
+    <Match>
+        <Class name="fr.aphp.mapbuilder.service.MatchBoxService"/>
+        <Method name="validate"/>
+        <Bug pattern="REC_CATCH_EXCEPTION"/>
+    </Match>
+
+</FindBugsFilter>
