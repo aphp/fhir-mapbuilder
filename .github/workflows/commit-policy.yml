@@ -1,0 +1,100 @@
+name: Commit policy
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [opened, edited, reopened, synchronize]
+  pull_request_target:
+    branches: [ main ]
+    types: [opened, edited, reopened, synchronize]
+
+# Aucune permission par défaut : chaque job élève au strict minimum ce dont il a besoin.
+permissions: {}
+
+# github.event_name fait partie de la clé : les runs pull_request et
+# pull_request_target d'une même PR ne s'annulent pas l'un l'autre.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  # Chaque commit non-merge de la PR doit porter un trailer `Signed-off-by:` (DCO).
+  # Plage BASE..HEAD uniquement : la règle n'est pas rétroactive sur l'historique existant.
+  dco:
+    name: dco
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Verify Signed-off-by on every non-merge commit
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          commits=$(git rev-list --no-merges "$BASE_SHA..$HEAD_SHA")
+          if [ -z "$commits" ]; then
+            echo "No non-merge commits in range — nothing to check."
+            exit 0
+          fi
+          status=0
+          for sha in $commits; do
+            subject=$(git show -s --format=%s "$sha")
+            if git show -s --format=%B "$sha" | grep -qE '^Signed-off-by: .+ <.+>$'; then
+              echo "ok       $sha  $subject"
+            else
+              echo "missing  $sha  $subject"
+              echo "::error::Commit $sha has no 'Signed-off-by:' trailer. Sign with 'git commit -s', or sign the whole branch with 'git rebase --signoff $BASE_SHA'."
+              status=1
+            fi
+          done
+          exit $status
+
+  # Chaque commit non-merge de la PR doit être un Conventional Commit valide.
+  commitlint:
+    name: commitlint
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Lint commit messages
+        uses: wagoid/commitlint-github-action@v6
+        with:
+          configFile: commitlint.config.mjs
+
+  # Le titre de la PR devient le sujet du commit de merge : il doit lui aussi
+  # être un Conventional Commit valide. pull_request_target pour revalider le
+  # titre à chaque édition, y compris pour les PR issues d'un fork.
+  pr-title:
+    name: pr-title
+    if: github.event_name == 'pull_request_target'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - name: Validate PR title
+        uses: amannn/action-semantic-pull-request@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Doit rester aligné sur `type-enum` dans commitlint.config.mjs.
+          types: |
+            feat
+            fix
+            test
+            docs
+            chore
+            build
+          requireScope: false
