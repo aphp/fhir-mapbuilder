@@ -3,6 +3,9 @@ package fr.aphp.mapbuilder.controller;
 import fr.aphp.mapbuilder.model.TransformationError;
 import fr.aphp.mapbuilder.model.ValidationError;
 import fr.aphp.mapbuilder.service.MatchBoxService;
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
 import org.hl7.fhir.r4.model.StructureMap;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,16 +14,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
-
 @RestController
 @RequestMapping("/api/matchbox")
 public class MatchBoxController {
     private final MatchBoxService matchBoxService;
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MatchBoxService.class);
-
 
     public MatchBoxController(MatchBoxService matchBoxService) {
         this.matchBoxService = matchBoxService;
@@ -28,9 +26,7 @@ public class MatchBoxController {
 
     @GetMapping("/validate")
     public ResponseEntity<String> validate(
-            @RequestParam String source,
-            @RequestParam String data,
-            @RequestParam String output) {
+            @RequestParam String source, @RequestParam String data, @RequestParam String output) {
 
         log.info("Get Validate Request, source:{}, data:{}, output:{}", source, data, output);
 
@@ -61,7 +57,8 @@ public class MatchBoxController {
                     .orElseGet(() -> {
                         String errorMessage = "StructureMap is null!";
                         log.error(errorMessage);
-                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(errorMessage);
                     });
 
         } catch (Exception e) {
@@ -71,8 +68,7 @@ public class MatchBoxController {
     }
 
     @GetMapping("/parse")
-    public ResponseEntity<String> parse(
-            @RequestParam String source) {
+    public ResponseEntity<String> parse(@RequestParam String source) {
 
         log.info("Get Parsing Request, source:{}", source);
 
@@ -98,5 +94,4 @@ public class MatchBoxController {
     private ResponseEntity<String> createErrorResponse(String message) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(message);
     }
-
 }

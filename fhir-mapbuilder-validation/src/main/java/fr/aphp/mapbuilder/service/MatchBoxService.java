@@ -1,20 +1,12 @@
 package fr.aphp.mapbuilder.service;
 
+import ch.ahdis.matchbox.engine.MatchboxEngine;
+import ch.ahdis.matchbox.engine.cli.VersionUtil;
 import fr.aphp.mapbuilder.model.CompilationError;
 import fr.aphp.mapbuilder.model.ParsingError;
 import fr.aphp.mapbuilder.model.TransformationError;
 import fr.aphp.mapbuilder.model.ValidationError;
 import fr.aphp.mapbuilder.utils.FileUtils;
-import ch.ahdis.matchbox.engine.MatchboxEngine;
-import ch.ahdis.matchbox.engine.cli.VersionUtil;
-import org.hl7.fhir.r4.formats.JsonParser;
-import org.hl7.fhir.r4.model.StructureMap;
-import org.hl7.fhir.r5.elementmodel.Manager;
-import org.hl7.fhir.utilities.validation.ValidationMessage;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.stereotype.Service;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +16,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import org.hl7.fhir.r4.formats.JsonParser;
+import org.hl7.fhir.r4.model.StructureMap;
+import org.hl7.fhir.r5.elementmodel.Manager;
+import org.hl7.fhir.utilities.validation.ValidationMessage;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.stereotype.Service;
 
 @Service
 public class MatchBoxService {
@@ -35,11 +34,9 @@ public class MatchBoxService {
     private String resultPath;
     private String qualityAssessmentPath;
 
-
     public MatchBoxService(@Qualifier("matchboxEngineR4") MatchboxEngine matchboxEngine) {
         this.engine = matchboxEngine;
     }
-
 
     // method that set path to files for each case with a datetime formated
     public void setPaths(String outputPath) throws IOException {
@@ -68,8 +65,7 @@ public class MatchBoxService {
             FileUtils.writeFile(paramsPath, "FML : \n\n" + sm + "\n\n", false);
             log.info("End compiling");
             return sm;
-        }
-        catch (Exception exception) {
+        } catch (Exception exception) {
             throw new CompilationError("Error during compilation process: " + exception.getMessage());
         }
     }
@@ -85,8 +81,7 @@ public class MatchBoxService {
             StructureMap sm = engine.parseMap(content);
             handleExistingResource(sm);
             return sm;
-        }
-        catch (Exception exception) {
+        } catch (Exception exception) {
             throw new ParsingError("Error during parsing process: ", exception);
         }
     }
@@ -99,7 +94,8 @@ public class MatchBoxService {
             final String json = new JsonParser().composeString(structureMap);
             final ByteArrayInputStream stream = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
 
-            engine.getValidator(Manager.FhirFormat.JSON).validate(null, messages, stream, Manager.FhirFormat.JSON, new ArrayList<>());
+            engine.getValidator(Manager.FhirFormat.JSON)
+                    .validate(null, messages, stream, Manager.FhirFormat.JSON, new ArrayList<>());
             final List<ValidationMessage> validate = engine.filterValidationMessages(messages);
 
             // Write the json to a file to ensure the persistence of the information if we need to persist information
@@ -107,14 +103,14 @@ public class MatchBoxService {
                 FileUtils.writeFile(qualityAssessmentPath, FileUtils.serializeListObject(validate), false);
             }
 
-        }
-        catch (Exception exception) {
+        } catch (Exception exception) {
             throw new ValidationError("Error during validation process inside method doValidation");
         }
     }
 
     // method that transform the data send in args with engine and structureMap give in parameters
-    public void transform(final StructureMap structureMap, String data, String output) throws TransformationError, IOException {
+    public void transform(final StructureMap structureMap, String data, String output)
+            throws TransformationError, IOException {
         try {
             log.info("Start data transformation");
             final String stringData = Files.readString(Path.of(data));
@@ -125,10 +121,13 @@ public class MatchBoxService {
 
             log.info("End of transformation");
             log.info("All files can be found inside " + FileUtils.createOrRetrieveFolderPath(output));
-        }
-        catch (Exception exception) {
-            FileUtils.writeFile(this.resultPath, "Error during transformation process inside method doTransformation " + exception, false);
-            throw new TransformationError("Error during transformation process inside method doTransformation " + exception);
+        } catch (Exception exception) {
+            FileUtils.writeFile(
+                    this.resultPath,
+                    "Error during transformation process inside method doTransformation " + exception,
+                    false);
+            throw new TransformationError(
+                    "Error during transformation process inside method doTransformation " + exception);
         }
     }
 
@@ -138,12 +137,10 @@ public class MatchBoxService {
             if (result) {
                 log.info("Packages included successfully.");
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             log.error("Error loading packages, message: {}", e.getMessage());
         }
     }
-
 
     public static List<String> getIgs(String[] args) {
         List<String> igs = new ArrayList<>();
@@ -164,7 +161,6 @@ public class MatchBoxService {
         // Load custom implementation guides from igPaths
         return loadCustomGuides(igPaths);
     }
-
 
     public boolean resetAndLoadEngine(List<String> packagePaths) {
         this.engine = new MatchboxEngine.MatchboxEngineBuilder().getEngineR4();
@@ -187,21 +183,20 @@ public class MatchBoxService {
             try (InputStream inputStream = new FileSystemResource(igPath).getInputStream()) {
                 engine.loadPackage(inputStream);
                 success = true;
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 log.error("Error loading package from output folder. IG path: {}", igPath, e);
             }
         }
 
         return success;
     }
+
     private void handleExistingResource(StructureMap sm) {
         if (engine.getContext().hasResource(org.hl7.fhir.r5.model.StructureMap.class, sm.getUrl())) {
-            engine.getContext().dropResource(
-                engine.getContext().fetchResource(org.hl7.fhir.r5.model.StructureMap.class, sm.getUrl())
-            );
+            engine.getContext()
+                    .dropResource(
+                            engine.getContext().fetchResource(org.hl7.fhir.r5.model.StructureMap.class, sm.getUrl()));
         }
         engine.addCanonicalResource(sm);
     }
-
 }
