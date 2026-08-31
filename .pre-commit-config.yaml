@@ -1,0 +1,34 @@
+# Hooks pre-commit — fournis, non imposés.
+# Installation locale (facultative) :
+#   pipx install pre-commit   # ou : pip install pre-commit
+#   pre-commit install
+# Lancer sur tout le dépôt :
+#   pre-commit run --all-files
+#
+# SpotBugs et `tsc --noEmit` restent CI-only (trop lents pour un hook de commit).
+minimum_pre_commit_version: "3.5.0"
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  - repo: local
+    hooks:
+      # prettier d'abord : c'est ce que `lint-ts` vérifie en CI (`prettier --check`).
+      # `eslint --fix` seul ne reformate pas — la config ESLint n'a pas de règle de style.
+      - id: prettier-fix
+        name: prettier --write (vscode-extension)
+        language: system
+        entry: npm --prefix vscode-extension run format
+        files: ^vscode-extension/src/.*\.ts$
+        pass_filenames: false
+      - id: eslint-fix
+        name: eslint --fix (vscode-extension)
+        language: system
+        entry: npm --prefix vscode-extension run lint:fix
+        files: ^vscode-extension/src/.*\.ts$
+        pass_filenames: false

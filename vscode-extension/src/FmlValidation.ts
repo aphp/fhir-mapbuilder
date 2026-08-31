@@ -5,21 +5,19 @@ import vscode, {
     Terminal,
     window,
     workspace,
-    WorkspaceConfiguration
+    WorkspaceConfiguration,
 } from "vscode";
-import fs from 'fs';
-import {MapBuilderValidationApi} from "./MapBuilderValidationApi";
-import {executeWithProgress, getDataFile, isEmptyOrBlank, logData} from "./utils";
-import {UiConstants} from "./constants/UiConstants";
+import fs from "fs";
+import { MapBuilderValidationApi } from "./MapBuilderValidationApi";
+import { executeWithProgress, getDataFile, isEmptyOrBlank, logData } from "./utils";
+import { UiConstants } from "./constants/UiConstants";
 import path from "path";
-
 
 export class FmlValidation {
     logger: OutputChannel;
     terminal!: Terminal;
     config: WorkspaceConfiguration;
     api: MapBuilderValidationApi;
-
 
     constructor(outputChannel: OutputChannel, mapBuilderValidationApi: MapBuilderValidationApi) {
         this.logger = outputChannel;
@@ -28,41 +26,34 @@ export class FmlValidation {
     }
 
     public async loadPackage() {
-
         await executeWithProgress("Loading new package in progress...", async () => {
             const message = await this.api.callResetAndLoadEngine();
             message
                 ? vscode.window.showInformationMessage(message)
-                : vscode.window.showErrorMessage('Failed to load package.');
+                : vscode.window.showErrorMessage("Failed to load package.");
         });
-
     }
 
-
     public async validateWithDefaultFiles(): Promise<void> {
-        logData('Start validation', this.logger);
+        logData("Start validation", this.logger);
         this.initConfig();
         await this.performValidation();
     }
 
     public async validateWithPossibilityToChooseFiles(): Promise<void> {
-        logData('Start validation', this.logger);
+        logData("Start validation", this.logger);
         this.initConfig();
         await this.checkPackagePathWarningMessage();
-        const {editor, keepGoing} = await this.chooseFilesAndContinue();
+        const { editor, keepGoing } = await this.chooseFilesAndContinue();
         if (editor && keepGoing) {
             await this.performValidation();
         }
     }
 
-
     public async checkPackagePathWarningMessage() {
         const isPackagePath: boolean = await this.isPackagePath();
         if (!isPackagePath) {
-            await window.showWarningMessage(
-                "There is no output\\package.tgz file in this project!",
-                {modal: true}
-            );
+            await window.showWarningMessage("There is no output\\package.tgz file in this project!", { modal: true });
             return false;
         }
 
@@ -72,10 +63,7 @@ export class FmlValidation {
     public async checkPackagePath() {
         const isPackagePath: boolean = await this.isPackagePath();
         if (!isPackagePath) {
-            await window.showErrorMessage(
-                "There is no output\\package.tgz file in this project!",
-                {modal: true}
-            );
+            await window.showErrorMessage("There is no output\\package.tgz file in this project!", { modal: true });
             return false;
         }
 
@@ -85,14 +73,13 @@ export class FmlValidation {
     private async performValidation(): Promise<void> {
         await executeWithProgress("Validation in progress...", async () => {
             const result = await this.api.callValidateStructureMap();
-            logData('End validation', this.logger);
+            logData("End validation", this.logger);
             if (result) {
-                window.showInformationMessage('Validation completed successfully.');
+                window.showInformationMessage("Validation completed successfully.");
             } else {
-                window.showErrorMessage('Validation error occurred.');
+                window.showErrorMessage("Validation error occurred.");
             }
         });
-
     }
 
     private getPackagePath(): string {
@@ -107,22 +94,21 @@ export class FmlValidation {
         const editor = window.activeTextEditor;
         const keepGoing = await this.openFileDialog();
 
-        return {editor, keepGoing};
+        return { editor, keepGoing };
     }
 
     private initConfig() {
-        logData('Start retrieve configuration', this.logger);
+        logData("Start retrieve configuration", this.logger);
         this.config = workspace.getConfiguration(UiConstants.configName);
-        logData('End retrieve configuration', this.logger);
-
+        logData("End retrieve configuration", this.logger);
     }
 
     public async openFileDialog(): Promise<boolean> {
         const options: OpenDialogOptions = {
             canSelectMany: false,
             filters: {
-                'Json': ['json']
-            }
+                Json: ["json"],
+            },
         };
 
         const fileUri = await window.showOpenDialog(options);
@@ -139,7 +125,7 @@ export class FmlValidation {
 
     public async isPackagePath(): Promise<boolean> {
         const path: string = this.getPackagePath();
-        return new Promise<boolean>(async resolve => {
+        return new Promise<boolean>(async (resolve) => {
             fs.access(path.replaceAll(" ", ""), fs.constants.F_OK, (err) => {
                 if (err) {
                     resolve(false);
@@ -149,6 +135,4 @@ export class FmlValidation {
             });
         });
     }
-
-
 }
