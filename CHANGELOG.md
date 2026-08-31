@@ -67,7 +67,7 @@ Changed
 
 ## 1.0.2 (2025-04-24)
 
-* Fix publish git workflow 
+* Fix publish git workflow
 * Fix broken URLs in the documentation.
 
 ## 1.0.1 (2025-04-23)

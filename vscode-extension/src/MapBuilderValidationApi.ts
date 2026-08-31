@@ -1,12 +1,11 @@
 import axios from "axios";
-import {ApiConstants} from "./constants/ApiConstants";
-import {OutputChannel, window, workspace} from "vscode";
+import { ApiConstants } from "./constants/ApiConstants";
+import { OutputChannel, window, workspace } from "vscode";
 import os from "os";
-import {getDataFile, logData} from "./utils";
+import { getDataFile, logData } from "./utils";
 import path from "path";
 
 export class MapBuilderValidationApi {
-
     mapBuilderValidationLogger: OutputChannel;
 
     constructor(validationOutputChannel: OutputChannel) {
@@ -80,7 +79,7 @@ export class MapBuilderValidationApi {
         }
     }
 
-// Call the matchbox validation and kill the process
+    // Call the matchbox validation and kill the process
     public callShutDownProcess() {
         axios.get(ApiConstants.shutDownUrl);
     }
@@ -109,7 +108,6 @@ export class MapBuilderValidationApi {
 
     private buildValidateUrl(): string {
         let url = ApiConstants.validateUrl;
-
 
         const sourcePath = this.getSourceFilePath();
 
@@ -146,16 +144,18 @@ export class MapBuilderValidationApi {
                 }
             } catch (error) {
                 // Log errors but continue polling
-                logData(`Waiting for java application. Attempt ${retries + 1}/${maxRetries} failed.`, this.mapBuilderValidationLogger);
+                logData(
+                    `Waiting for java application. Attempt ${retries + 1}/${maxRetries} failed.`,
+                    this.mapBuilderValidationLogger,
+                );
             }
 
             retries++;
             await new Promise((resolve) => setTimeout(resolve, intervalMs)); // Wait before retrying
         }
 
-        throw new Error('Java application failed to start within the expected time.');
+        throw new Error("Java application failed to start within the expected time.");
     }
-
 
     private getWorkspacePathOrHomeDir(): string {
         const workspaceFolders = workspace.workspaceFolders;

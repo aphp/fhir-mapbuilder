@@ -1,13 +1,12 @@
-import {execSync, spawnSync, spawn} from "node:child_process";
-import {existsSync, accessSync, constants} from "fs";
-import {ApiConstants} from "./constants/ApiConstants";
-import {extensions, OutputChannel, window, workspace, WorkspaceConfiguration} from "vscode";
-import {logData} from "./utils";
-import {UiConstants} from "./constants/UiConstants";
+import { execSync, spawnSync, spawn } from "node:child_process";
+import { existsSync, accessSync, constants } from "fs";
+import { ApiConstants } from "./constants/ApiConstants";
+import { extensions, OutputChannel, window, workspace, WorkspaceConfiguration } from "vscode";
+import { logData } from "./utils";
+import { UiConstants } from "./constants/UiConstants";
 import path from "path";
 
 export class MapBuilderJavaProcess {
-
     mapBuilderValidationLogger: OutputChannel;
     config: WorkspaceConfiguration;
 
@@ -17,14 +16,14 @@ export class MapBuilderJavaProcess {
     }
 
     public start(): void {
-        const {command, args} = this.buildShellCommand();
+        const { command, args } = this.buildShellCommand();
         if (command === null) {
             return;
         }
         window.showInformationMessage("Starting matchbox java process");
         logData(`Starting java process - cmd: ${command} ${args.join(" ")}`, this.mapBuilderValidationLogger);
 
-        const javaProcess = spawn(command, args, {shell: true});
+        const javaProcess = spawn(command, args, { shell: true });
 
         javaProcess.stdout.on("data", (data) => {
             const logEntry = data.toString();
@@ -54,7 +53,7 @@ export class MapBuilderJavaProcess {
         const jarPath = path.join(
             extensions.getExtension(UiConstants.extensionPublisher)?.extensionPath || "",
             "target",
-            `${jarName}.jar`
+            `${jarName}.jar`,
         );
 
         const args = [
@@ -62,7 +61,7 @@ export class MapBuilderJavaProcess {
             `-Dfile.encoding=UTF-8`,
             ...this.getJavaVmArgs(),
             "-jar",
-            jarPath
+            jarPath,
         ];
 
         const workspaceFolders = workspace.workspaceFolders;
@@ -74,7 +73,7 @@ export class MapBuilderJavaProcess {
         }
 
         const command = this.validateJavaPath(this.config.get<string>("javaExecutablePath"));
-        return {command, args};
+        return { command, args };
     }
 
     private getJavaVmArgs(): string[] {
@@ -90,8 +89,7 @@ export class MapBuilderJavaProcess {
         try {
             accessSync(path, constants.X_OK);
             return true;
-        }
-        catch {
+        } catch {
             return process.platform === "win32" && path.endsWith(".exe");
         }
     }
@@ -103,16 +101,16 @@ export class MapBuilderJavaProcess {
             logData(msg, this.mapBuilderValidationLogger);
             return false;
         }
-    
+
         const result = spawnSync(path, ["-version"], { encoding: "utf8" });
-        
+
         if (result.error) {
             const msg = "File is not a valid binary.";
             window.showErrorMessage(msg);
             logData(msg, this.mapBuilderValidationLogger);
             return false;
         }
-    
+
         logData(`Java version output: ${result.stderr}`, this.mapBuilderValidationLogger);
         const match = result.stderr.match(/version\s+"(\d+)/);
         const version = match ? parseInt(match[1], 10) : null;
@@ -126,28 +124,28 @@ export class MapBuilderJavaProcess {
     }
 
     private validateJavaPath(path: string | undefined): string | null {
-        if (path === null || path === undefined || path === '') {
+        if (path === null || path === undefined || path === "") {
             path = "java";
             if (!this.isJavaValid(path)) {
                 return null;
             }
             return path;
         }
-        if (!(this.isFileExists(path))) {
+        if (!this.isFileExists(path)) {
             const msg = "File does not exist.";
             window.showErrorMessage(msg);
             logData(msg, this.mapBuilderValidationLogger);
             return null;
-        } 
-        if (!(this.isFileExecutable(path))) {
+        }
+        if (!this.isFileExecutable(path)) {
             const msg = "File is not executable.";
             window.showErrorMessage(msg);
             logData(msg, this.mapBuilderValidationLogger);
             return null;
         }
-        
+
         if (this.isJavaValid(path)) {
-            return `"${path}"`;   
+            return `"${path}"`;
         }
 
         return null;

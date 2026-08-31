@@ -1,7 +1,7 @@
 # Validation for FHIR MapBuilder
 
-The goal of this project is to implement a REST API base on [The MatchBox Engine](https://github.com/ahdis/matchbox), from agile health data 
-information systems, that allows the FHIR MapBuilder extension to perform compilation, validation, and transformation of an 
+The goal of this project is to implement a REST API base on [The MatchBox Engine](https://github.com/ahdis/matchbox), from agile health data
+information systems, that allows the FHIR MapBuilder extension to perform compilation, validation, and transformation of an
 FML (FHIR Mapping Language) file provided by MatchBox through REST calls.
 
 This application helps the alignment designer use FML without errors by ensuring syntactic validation.
