@@ -1,0 +1,151 @@
+name: Audit dépendances
+
+# Veille de fond hebdomadaire, complémentaire de la barrière advisory sur PR
+# (job `audit-advisory` de `ci.yml`). Rejoue OSV-Scanner contre `pom.xml` +
+# `package-lock.json`, publie le SARIF dans l'onglet Security, et — sur une vraie
+# détection de vulnérabilité — ouvre une issue `dependencies` dédoublonnée par
+# titre. Mécanisme de suppression par CVE : `osv-scanner.toml` (cf. CONTRIBUTING.md).
+on:
+  schedule:
+    - cron: "0 6 * * 1" # lundi 06:00 UTC
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: audit-${{ github.workflow }}
+  cancel-in-progress: false
+
+env:
+  # Version du binaire OSV-Scanner. À garder alignée avec le tag du reusable
+  # workflow `osv-scanner-reusable-pr.yml` épinglé dans `ci.yml`.
+  OSV_SCANNER_VERSION: v2.5.1
+
+jobs:
+  audit:
+    name: osv-scanner (bloquant)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write # upload du SARIF vers Code scanning
+      actions: read # requis par codeql-action/upload-sarif
+    outputs:
+      vulns-found: ${{ steps.scan.outputs.vulns-found }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Install OSV-Scanner
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/bin"
+          url="https://github.com/google/osv-scanner/releases/download/${OSV_SCANNER_VERSION}/osv-scanner_linux_amd64"
+          curl --fail --location --proto '=https' --tlsv1.2 --silent --show-error \
+            --output "$RUNNER_TEMP/bin/osv-scanner" "$url"
+          chmod +x "$RUNNER_TEMP/bin/osv-scanner"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/bin/osv-scanner" --version
+
+      - name: Run OSV-Scanner
+        id: scan
+        # `scan source -r` couvre `pom.xml` (résolution transitive via deps.dev)
+        # et `package-lock.json` en une passe. Les répertoires ignorés par git
+        # (node_modules, target, .vscode-test…) sont exclus d'office.
+        #
+        # Le code de sortie est classé à la main :
+        #   0                 -> aucune vulnérabilité
+        #   1                 -> vulnérabilités trouvées : échec du job + ouverture d'issue
+        #   128               -> aucun paquet ramassé : traité comme une erreur de configuration
+        #   >= 127 (hors 128) -> panne (réseau, binaire…) : échec du job, aucune issue
+        run: |
+          set +e
+          osv-scanner scan source -r \
+            --config=./osv-scanner.toml \
+            --format=sarif --output=osv.sarif .
+          code=$?
+          set -e
+          echo "osv-scanner exit code: $code"
+
+          # `sarif-written` gouverne l'upload : on ne publie le SARIF que pour un
+          # scan mené à terme (0 = propre, 1 = vulnérabilités). Sur 128 / panne,
+          # le fichier est absent ou partiel — on ne l'envoie pas.
+          case "$code" in
+            0)
+              echo "sarif-written=$( [ -s osv.sarif ] && echo true || echo false )" >> "$GITHUB_OUTPUT"
+              echo "vulns-found=false" >> "$GITHUB_OUTPUT"
+              echo "OSV-Scanner : aucune vulnérabilité connue."
+              ;;
+            1)
+              echo "sarif-written=$( [ -s osv.sarif ] && echo true || echo false )" >> "$GITHUB_OUTPUT"
+              echo "vulns-found=true" >> "$GITHUB_OUTPUT"
+              echo "::warning::OSV-Scanner a trouvé au moins une vulnérabilité connue."
+              ;;
+            128)
+              echo "sarif-written=false" >> "$GITHUB_OUTPUT"
+              echo "vulns-found=false" >> "$GITHUB_OUTPUT"
+              echo "::error::OSV-Scanner n'a ramassé aucun paquet (exit 128) — erreur de configuration."
+              exit 1
+              ;;
+            *)
+              echo "sarif-written=false" >> "$GITHUB_OUTPUT"
+              echo "vulns-found=false" >> "$GITHUB_OUTPUT"
+              echo "::error::OSV-Scanner a échoué (exit $code) — panne, pas un résultat de vulnérabilité. Aucune issue ouverte."
+              exit "$code"
+              ;;
+          esac
+
+      - name: Upload SARIF to code scanning
+        if: ${{ !cancelled() && steps.scan.outputs.sarif-written == 'true' }}
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: osv.sarif
+          category: osv-scanner
+
+      - name: Fail when vulnerabilities were found
+        if: ${{ steps.scan.outputs.vulns-found == 'true' }}
+        run: |
+          echo "::error::OSV-Scanner a trouvé des vulnérabilités connues — voir le SARIF dans l'onglet Security."
+          exit 1
+
+  open-issue:
+    name: Ouvrir une issue à la détection
+    needs: audit
+    # Uniquement sur une vraie détection (exit 1, exposée via l'output `vulns-found`).
+    # Les pannes (exit >= 127) et l'erreur de configuration (exit 128) font échouer
+    # le job `audit` sans passer par ici — pas d'issue pour du bruit d'infrastructure.
+    if: ${{ !cancelled() && needs.audit.outputs.vulns-found == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Créer l'issue « dependencies » (dédoublonnée par titre)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: "osv-scanner : vulnérabilité connue dans les dépendances"
+          RUN_URL: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        run: |
+          gh label create dependencies \
+            --color BFD4F2 \
+            --description "Sécurité et mises à jour de dépendances" \
+            2>/dev/null || true
+
+          existing=$(gh issue list \
+            --state open --label dependencies \
+            --search "\"$TITLE\" in:title" \
+            --json number --jq '.[0].number // empty')
+
+          if [ -n "$existing" ]; then
+            echo "Issue #$existing déjà ouverte — rien à faire."
+            exit 0
+          fi
+
+          gh issue create \
+            --title "$TITLE" \
+            --label dependencies \
+            --body "Le workflow \`audit.yml\` a échoué : OSV-Scanner a trouvé au moins une vulnérabilité connue dans les dépendances (\`pom.xml\` + \`package-lock.json\`).
+
+          Détail dans le SARIF (onglet **Security → Code scanning**) et dans les logs du run : $RUN_URL
+
+          Dédoublonnée par titre — elle ne sera pas rouverte tant qu'elle reste ouverte. Pour supprimer un CVE faux positif, ajouter une entrée \`[[IgnoredVulns]]\` dans \`osv-scanner.toml\` (voir \`CONTRIBUTING.md\`)."
