@@ -28,7 +28,7 @@
 
     <groupId>fr.aphp</groupId>
     <artifactId>fhir-mapbuilder-validation</artifactId>
-    <version>1.5.0</version>
+    <version>1.6.0</version>
 
     <dependencies>
         <!-- Spring Boot Web Starter -->
