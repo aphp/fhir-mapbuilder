@@ -6,9 +6,12 @@
 # `build` (aligné sur le `type-enum` de commitlint — cf. commitlint.config.mjs,
 # ADR 0001), label `dependencies`, assignées à davidouagne, fenêtre de
 # refroidissement de 3 jours avant de proposer une version fraîchement publiée.
-# Deux groupes : les dev-dependencies partent ensemble ; les prod-dependencies
-# en minor/patch aussi (les major restent des PR individuelles, instruites à la
-# main). L'éligibilité à l'auto-merge est décidée par
+# Deux groupes, tous deux bornés à minor/patch : dev-dependencies d'un côté,
+# prod-dependencies de l'autre. Les major restent hors groupe, en PR
+# individuelles instruites à la main — un major ne doit jamais voyager
+# silencieusement à côté de bumps sûrs dans une PR groupée qui a l'air propre
+# (constaté sur #97 : typescript ^5 -> ^7 groupé avec des patchs, cassant
+# npm ci en ERESOLVE). L'éligibilité à l'auto-merge est décidée par
 # .github/workflows/dependabot-auto-merge.yml.
 version: 2
 updates:
@@ -31,6 +34,9 @@ updates:
     groups:
       dev-dependencies:
         dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
         patterns:
           - "*"
       prod-minor-patch:
@@ -69,6 +75,9 @@ updates:
     groups:
       dev-dependencies:
         dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
         patterns:
           - "*"
       prod-minor-patch:
@@ -100,5 +109,8 @@ updates:
       - "davidouagne"
     groups:
       actions:
+        update-types:
+          - "minor"
+          - "patch"
         patterns:
           - "*"

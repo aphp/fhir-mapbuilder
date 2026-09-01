@@ -71,7 +71,12 @@ same hooks locally (not mandatory).
 - **`dependabot.yml`**: three ecosystems — `maven` (`/fhir-mapbuilder-validation`),
   `npm` (`/vscode-extension`), `github-actions` (`/`). Weekly on Monday,
   `build` commit prefix, `dependencies` label, grouped (`dev-dependencies` +
-  `prod-minor-patch`; `actions` group for the third).
+  `prod-minor-patch`; `actions` group for the third) — **every group is bounded
+  to `update-types: [minor, patch]`**, so a major update is never bundled
+  inside a group PR that otherwise looks safe; it surfaces as its own
+  individual PR instead. (Initially `dev-dependencies` had no such bound; a
+  `typescript ^5 -> ^7` major riding along with safe patches broke `npm ci`
+  with an `@typescript-eslint` peer conflict — see PR #97 / the follow-up fix.)
 - **`dependabot-auto-merge.yml`**: `pull_request`, `permissions: {}`; a
   `dependabot[bot]`-gated job reads `dependabot/fetch-metadata` and enables
   `gh pr merge --auto --merge` for `version-update:semver-patch`, or
