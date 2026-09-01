@@ -155,7 +155,9 @@ jobs:
 
       - name: Publish to Open VSX
         # Prérequis manuel (hors T8) : namespace `aphp` + trusted publisher
-        # (`aphp/fhir-mapbuilder` + `release.yml`) sur open-vsx.org.
+        # (`aphp/fhir-mapbuilder` + `release.yml`) sur open-vsx.org. À confirmer
+        # avant la 1re release : la CLI `ovsx` 1.1.1 n'expose que `--pat` —
+        # vérifier le point d'entrée trusted publishing et épingler `ovsx` (ADR 0003).
         run: npx --yes ovsx publish *.vsix --trusted-publishing
 
   smoke:
