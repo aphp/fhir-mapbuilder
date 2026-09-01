@@ -17,7 +17,12 @@ suite("Extension Test Suite", () => {
         assert.ok(extension, "Extension is not registered in VSCode");
     });
 
-    test("Extension should activate on FML file", async () => {
+    test("Extension should activate on FML file", async function (this: Mocha.Context) {
+        // Integration test: it waits on a real extension-host activation (which
+        // spins up the Matchbox Java process). Cold starts on CI runners
+        // routinely blow past Mocha's 2s default, so give this one room.
+        this.timeout(30_000);
+
         const extension = vscode.extensions.getExtension(UiConstants.extensionPublisher);
         if (!extension) {
             assert.fail("Extension not found");
