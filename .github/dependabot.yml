@@ -1,9 +1,43 @@
+# Dependabot — les 3 écosystèmes du monorepo : Maven (module de validation Java),
+# npm (extension VS Code) et GitHub Actions. Voir ADR 0002 (chaîne CI/CD) et le
+# spec #80.
+#
+# Convention commune maven/npm : PR hebdomadaires le lundi, préfixe de commit
+# `build` (aligné sur le `type-enum` de commitlint — cf. commitlint.config.mjs,
+# ADR 0001), label `dependencies`, assignées à davidouagne, fenêtre de
+# refroidissement de 3 jours avant de proposer une version fraîchement publiée.
+# Deux groupes : les dev-dependencies partent ensemble ; les prod-dependencies
+# en minor/patch aussi (les major restent des PR individuelles, instruites à la
+# main). L'éligibilité à l'auto-merge est décidée par
+# .github/workflows/dependabot-auto-merge.yml.
 version: 2
 updates:
   - package-ecosystem: "maven"
     directory: "/fhir-mapbuilder-validation"
     schedule:
       interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 3
+    commit-message:
+      prefix: "build"
+      prefix-development: "build"
+      include: "scope"
+    labels:
+      - "dependencies"
+    assignees:
+      - "davidouagne"
+    groups:
+      dev-dependencies:
+        dependency-type: "development"
+        patterns:
+          - "*"
+      prod-minor-patch:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
     ignore:
       # fhir.core.version must stay whatever version health.matchbox:matchbox-engine
       # itself requires — never bumped independently, or the two can drift out of
@@ -20,9 +54,51 @@ updates:
     directory: "/vscode-extension"
     schedule:
       interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 3
+    commit-message:
+      prefix: "build"
+      prefix-development: "build"
+      include: "scope"
+    labels:
+      - "dependencies"
+    assignees:
+      - "davidouagne"
+    groups:
+      dev-dependencies:
+        dependency-type: "development"
+        patterns:
+          - "*"
+      prod-minor-patch:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
     ignore:
       # @types/vscode's minor version tracks the VS Code release it targets, so
       # bumping it ahead of engines.vscode makes `vsce package` fail with
       # "@types/vscode greater than engines.vscode". Bump it by hand alongside
       # an engines.vscode bump instead.
       - dependency-name: "@types/vscode"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "build"
+      prefix-development: "build"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    assignees:
+      - "davidouagne"
+    groups:
+      actions:
+        patterns:
+          - "*"
