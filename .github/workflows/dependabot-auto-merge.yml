@@ -1,0 +1,33 @@
+name: Dependabot auto-merge
+
+# Active l'auto-merge sur les PR de Dependabot dont la mise à jour est jugée
+# sûre : tous les patchs, et les minors qui ne touchent qu'une dev-dependency
+# directe. Tout le reste (minors de prod, majors) reste à instruire à la main.
+# Voir ADR 0002 et le spec #80.
+on: pull_request
+
+# Rien par défaut : le job élève au strict nécessaire.
+permissions: {}
+
+jobs:
+  dependabot:
+    name: dependabot
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    permissions:
+      contents: write # activer l'auto-merge sur la PR
+      pull-requests: write # gh pr merge
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v3
+
+      - name: Enable auto-merge for eligible updates
+        if: >-
+          steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
+          (steps.metadata.outputs.update-type == 'version-update:semver-minor' &&
+           steps.metadata.outputs.dependency-type == 'direct:development')
+        run: gh pr merge --auto --merge "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
