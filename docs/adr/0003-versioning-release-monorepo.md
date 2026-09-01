@@ -95,31 +95,34 @@ deleted.
 | `release-please` | — | `contents: write`, `pull-requests: write`, `issues: write` | — | Open/maintain the release PR; on merge, cut the tag + GitHub Release. |
 | `build` | `release-please` | `contents: write` | — | Checkout the tag (`persist-credentials: false`), `mvn -B package -DskipTests`, bundle the jar, `vsce package`, `gh release upload` the `.vsix` + jar, `upload-artifact` the `.vsix`. **No re-test** — ci.yml already gated the release PR at merge. |
 | `publish-marketplace` | `build` | `contents: read` | `vscode-marketplace` | `download-artifact` (**pinned by SHA**), `vsce publish --packagePath *.vsix -p "$VSCE_PAT"`. |
-| `publish-openvsx` | `build` | `contents: read`, `id-token: write` | `open-vsx` | `download-artifact` (**pinned by SHA**), `ovsx publish *.vsix --trusted-publishing` (OIDC, no token). Runs in parallel with `publish-marketplace`. |
+| `publish-openvsx` | `build` | `contents: read` | `open-vsx` | `download-artifact` (**pinned by SHA**), `ovsx publish *.vsix -p "$OVSX_PAT"`. Runs in parallel with `publish-marketplace`. |
 | `smoke` | `publish-marketplace`, `publish-openvsx` | `{}` | — | `continue-on-error: true`; retries `vsce show` + an Open VSX API probe. A lagging registry does not fail the release. |
 
 ### PAT debt — due 2026-12-01
 
-`publish-marketplace` authenticates with a classic Personal Access Token
-(`secrets.P_A_T`, exposed as `VSCE_PAT`). The VS Code Marketplace does not yet
-support OIDC trusted publishing the way Open VSX does. This is tracked debt:
-**revisit by 2026-12-01** — move to Marketplace trusted publishing if it has
-shipped by then, otherwise rotate the PAT and re-confirm its scope
-(Marketplace → Manage, `Marketplace: Publish` only).
+**Both** publish jobs authenticate with a Personal Access Token, not OIDC:
+
+- `publish-marketplace` — `secrets.P_A_T`, exposed as `VSCE_PAT`. The VS Code
+  Marketplace has no OIDC trusted publishing.
+- `publish-openvsx` — `secrets.OVSX_PAT`. Open VSX trusted publishing is not a
+  shipped self-serve feature yet (the `/user-settings/trusted-publishers` page
+  is empty and `ovsx` 1.1.1 exposes only `--pat`), so the T8 plan's
+  `--trusted-publishing` invocation was dropped for a PAT, mirroring the
+  Marketplace side.
+
+Tracked debt: **revisit by 2026-12-01** — move each registry to trusted
+publishing if it has shipped by then; otherwise rotate both PATs and re-confirm
+their scope (`Marketplace: Publish` only for the Azure DevOps PAT; a
+namespace-scoped token for Open VSX).
 
 ### Manual prerequisites (outside #87, before the first real release)
 
-- **Open VSX**: create an Eclipse account, sign the Publisher Agreement, run
-  `ovsx create-namespace aphp`, request Namespace Access, and register the
-  trusted publisher (`aphp/fhir-mapbuilder` + `release.yml`) at
-  `open-vsx.org/user-settings/trusted-publishers`.
-- **GitHub environments** `vscode-marketplace` and `open-vsx` must exist (add
-  required reviewers / branch limits there if desired).
-- **Confirm the `ovsx` invocation** against the CLI version resolved at
-  first-release time. `release.yml` runs `ovsx publish *.vsix
-  --trusted-publishing` (OIDC, no PAT); `ovsx` 1.1.1 exposes only `--pat`, so
-  the trusted-publishing entry point may need a specific `ovsx` version or a
-  flagless OIDC path. Pin `ovsx` in the workflow once verified.
+- **Open VSX**: create an Eclipse account, sign the Publisher Agreement, ensure
+  the `aphp` namespace exists (`ovsx create-namespace aphp`) and the publishing
+  account can write to it (`ovsx verify-pat aphp`), then add the token as the
+  `OVSX_PAT` secret on the `open-vsx` environment.
+- **GitHub environments** `vscode-marketplace` (`P_A_T`) and `open-vsx`
+  (`OVSX_PAT`) must exist with their secret and required reviewer.
 
 ## Consequences
 
@@ -145,5 +148,9 @@ shipped by then, otherwise rotate the PAT and re-confirm its scope
   Marketplace changelog tab.
 - **Keep the manual tag + dispatch.** Rejected: it is the source of the version
   drift and the hand-maintained changelog this record removes.
+- **OIDC trusted publishing to Open VSX** (as T8 planned, and as the reference
+  repo does for PyPI). Rejected for now: Open VSX exposes no trusted-publisher
+  configuration and `ovsx` has no OIDC path, so it is not usable. Revisit with
+  the PAT debt above.
 - **Marketplace PAT stored per-environment with no expiry tracking.** Rejected:
   the debt is recorded here with a review date instead.

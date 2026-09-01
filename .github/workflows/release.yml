@@ -139,7 +139,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write # trusted publishing (OIDC) vers Open VSX
     environment: open-vsx
     steps:
       - name: Download the packaged .vsix
@@ -154,11 +153,13 @@ jobs:
           node-version: '22'
 
       - name: Publish to Open VSX
-        # Prérequis manuel (hors T8) : namespace `aphp` + trusted publisher
-        # (`aphp/fhir-mapbuilder` + `release.yml`) sur open-vsx.org. À confirmer
-        # avant la 1re release : la CLI `ovsx` 1.1.1 n'expose que `--pat` —
-        # vérifier le point d'entrée trusted publishing et épingler `ovsx` (ADR 0003).
-        run: npx --yes ovsx publish *.vsix --trusted-publishing
+        # Open VSX ne propose pas (encore) de trusted publishing OIDC et la CLI
+        # `ovsx` n'expose que `--pat` — on publie donc au PAT, comme le
+        # Marketplace. Dette suivie dans l'ADR 0003 (échéance 2026-12-01).
+        # Prérequis manuel : namespace `aphp` + `OVSX_PAT` dans l'environnement.
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: npx --yes ovsx publish *.vsix -p "$OVSX_PAT"
 
   smoke:
     name: smoke
