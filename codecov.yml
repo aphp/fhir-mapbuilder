@@ -1,0 +1,52 @@
+# Barrière de couverture Codecov — voir ADR 0002 (chaîne CI/CD) et le spec #80.
+#
+# Deux stacks, deux uploads distincts poussés par ci.yml via OIDC (sans token) :
+#   - flag `ts`   : lcov de l'extension VS Code (job test-ts)
+#   - flag `java` : jacoco.xml du module de validation (job test-java)
+#
+# `project` (auto) informe sur la tendance globale des deux composants.
+# `patch` (80 %) est la vraie barrière sur le code neuf : bloquant pour le TS,
+# informatif pour le Java tant que le socle de tests T2 n'atteint pas la cible
+# (repasser le composant `java` en `informational: false` quand la couverture
+# du socle le permet ; sinon garder l'état informatif et documenter le
+# déclencheur ici).
+
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 0%
+    patch:
+      default:
+        target: 80%
+
+component_management:
+  individual_components:
+    - component_id: ts
+      name: ts
+      paths:
+        - vscode-extension/**
+    - component_id: java
+      name: java
+      paths:
+        - fhir-mapbuilder-validation/**
+      statuses:
+        # Non bloquant : le statut `patch` Java remonte mais ne fait pas échouer
+        # la PR tant que le socle de tests n'est pas assez fourni.
+        - type: patch
+          informational: true
+
+flags:
+  ts:
+    carryforward: true
+  java:
+    carryforward: true
+
+# Fichiers hors périmètre de couverture (point d'entrée Spring, DTO/config
+# sans logique, code de test). Ils n'entrent pas dans le calcul.
+ignore:
+  - "**/MatchBoxApplication.java"
+  - "**/model/**"
+  - "**/config/**"
+  - "**/test/**"

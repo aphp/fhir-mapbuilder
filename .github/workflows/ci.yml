@@ -95,6 +95,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write # OIDC : upload Codecov sans token
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -110,16 +111,24 @@ jobs:
         run: npm ci
         working-directory: vscode-extension
 
-      - name: Run extension tests (with xvfb)
-        # Pas de couverture pour l'instant — branchée dans un ticket ultérieur
-        run: xvfb-run -a npm test
+      - name: Run extension tests with coverage (with xvfb)
+        # `--coverage` -> @vscode/test-cli + c8 -> vscode-extension/coverage/lcov.info
+        run: xvfb-run -a npm test -- --coverage
         working-directory: vscode-extension
+
+      - name: Upload coverage to Codecov (flag ts)
+        uses: codecov/codecov-action@v5
+        with:
+          use_oidc: true
+          files: vscode-extension/coverage/lcov.info
+          flags: ts
 
   test-java:
     name: test-java
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write # OIDC : upload Codecov sans token
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -133,8 +142,16 @@ jobs:
           cache-dependency-path: fhir-mapbuilder-validation/pom.xml
 
       - name: mvn verify
+        # jacoco:report (phase test) écrit target/site/jacoco/jacoco.xml
         run: mvn -B verify
         working-directory: fhir-mapbuilder-validation
+
+      - name: Upload coverage to Codecov (flag java)
+        uses: codecov/codecov-action@v5
+        with:
+          use_oidc: true
+          files: fhir-mapbuilder-validation/target/site/jacoco/jacoco.xml
+          flags: java
 
   build:
     name: build
