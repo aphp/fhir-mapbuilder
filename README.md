@@ -86,22 +86,31 @@ mvn spring-boot:run
 
 ## ⚙️ GitHub Workflows
 
-Several GitHub Actions workflows have been set up to automate key parts of the project:
+Several GitHub Actions workflows automate key parts of the project:
 
-- **Test Workflow** (test.yml)
+- **CI** (`ci.yml`)
 
-This workflow runs automatically on every push or pull request targeting the main branch.
-It installs dependencies, compiles TypeScript, and runs the extension's test suite to ensure code quality.
+Runs on every pull request and on push to `main`: lint, format and type checks,
+the TypeScript and Java test suites with coverage, a dependency audit, and a
+build + smoke-test that packages the `.vsix` and checks the validation jar is
+bundled.
 
-- **Release Workflow** (release.yml)
+- **Commit policy** (`commit-policy.yml`)
 
-This workflow is triggered automatically when a new Git tag matching the pattern v* (e.g., v1.0.0) is created.
-It packages the VS Code extension into a .vsix file and attaches it to the corresponding GitHub Release on the Releases page.
+Validates that every non-merge commit and the PR title are Conventional Commits
+and carry a DCO `Signed-off-by` trailer (see `docs/adr/0001-politique-de-commits.md`).
 
-- **Publish Workflow** (publish.yml)
+- **Dependency audit** (`audit.yml`)
 
-A dedicated workflow to automatically publish the VS Code extension to the Visual Studio Marketplace.
-This workflow can be triggered manually via the GitHub Actions tab and uses a secure token to authenticate the publishing process.
+Weekly blocking OSV-Scanner run over `pom.xml` + `package-lock.json`, opening a
+deduplicated issue on a real finding.
+
+- **Release** (`release.yml`)
+
+Runs on push to `main`. [release-please](https://github.com/googleapis/release-please)
+maintains a release PR from the commit history; merging it cuts the tag and
+GitHub Release, then the pipeline builds the `.vsix` and publishes it to the VS
+Code Marketplace and Open VSX. See `docs/adr/0003-versioning-release-monorepo.md`.
 
 ## 📜 License
 

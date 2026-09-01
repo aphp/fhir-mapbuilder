@@ -1,62 +1,203 @@
-name: Package and Release VS Code Extension
+name: Release
 
+# Chaîne de release pilotée par release-please (ADR 0003).
+#
+# À chaque push sur `main`, le job `release-please` ouvre ou met à jour la PR
+# de release. Quand cette PR est mergée, release-please crée le tag + la
+# GitHub Release et expose `vscode-extension--release_created == 'true'` :
+# c'est le seul déclencheur des jobs `build` -> `publish-*` -> `smoke`.
 on:
   push:
-    tags:
-      - 'v*'  # Déclenché sur les tags v1.0.0, v2.3.1, etc.
+    branches: [main]
 
-# Principe du moindre privilège : seules les permissions nécessaires sont accordées
-permissions:
-  contents: write  # Requis pour créer la GitHub Release
+# Rien par défaut : chaque job élève au strict nécessaire.
+permissions: {}
+
+# Une seule release à la fois ; on ne coupe pas un run en cours (il peut être
+# en train de publier).
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
-  release:
+  release-please:
+    name: release-please
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: write # créer le tag et la GitHub Release
+      pull-requests: write # ouvrir / mettre à jour la PR de release
+      issues: write # release-please étiquette des issues liées
+    outputs:
+      # Nom de sortie confirmé par le dry-run local : release-please-action
+      # préfixe chaque sortie par le chemin du paquet (`vscode-extension--…`).
+      vscode-extension--release_created: ${{ steps.release.outputs['vscode-extension--release_created'] }}
+      vscode-extension--tag_name: ${{ steps.release.outputs['vscode-extension--tag_name'] }}
     steps:
-      - name: Checkout code
+      - name: Run release-please
+        id: release
+        uses: googleapis/release-please-action@v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  build:
+    name: build
+    needs: [release-please]
+    if: needs.release-please.outputs['vscode-extension--release_created'] == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # gh release upload
+    steps:
+      - name: Checkout the release tag
         uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.release-please.outputs['vscode-extension--tag_name'] }}
+          persist-credentials: false
 
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
-          # Lit la contrainte engines.node du package.json — plus de version en dur
           node-version-file: vscode-extension/package.json
           cache: npm
           cache-dependency-path: vscode-extension/package-lock.json
 
-      - name: Set up Java
+      - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
           cache: maven
+          cache-dependency-path: fhir-mapbuilder-validation/pom.xml
 
       - name: Install Node dependencies
-        # npm ci garantit une installation strictement reproductible depuis package-lock.json
         run: npm ci
         working-directory: vscode-extension
 
-      - name: Run tests (with xvfb)
-        run: xvfb-run -a npm test
-        working-directory: vscode-extension
-
-      - name: Build JAR with Maven
-        run: mvn --batch-mode --no-transfer-progress clean package
+      - name: Build the validation jar
+        # Pas de re-test : la PR de release est passée par ci.yml au merge.
+        run: mvn -B package -DskipTests
         working-directory: fhir-mapbuilder-validation
 
-      - name: Move JAR to VS Code extension
+      - name: Bundle the jar into the extension
         run: |
           mkdir -p vscode-extension/target
-          mv fhir-mapbuilder-validation/target/fhir-mapbuilder-validation.jar vscode-extension/target
+          cp fhir-mapbuilder-validation/target/fhir-mapbuilder-validation.jar vscode-extension/target/
 
-      - name: Package extension
-        # vsce est dans devDependencies — pas besoin d'un install -g séparé
+      - name: Package the .vsix
         run: npx vsce package --baseImagesUrl=https://raw.githubusercontent.com/aphp/fhir-mapbuilder/refs/heads/main/vscode-extension
         working-directory: vscode-extension
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v3
+      - name: Attach the .vsix and jar to the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.release-please.outputs['vscode-extension--tag_name'] }}
+        run: |
+          gh release upload "$TAG" \
+            vscode-extension/*.vsix \
+            vscode-extension/target/fhir-mapbuilder-validation.jar \
+            --clobber
+
+      - name: Upload the .vsix as a workflow artifact
+        uses: actions/upload-artifact@v4
         with:
-          files: vscode-extension/*.vsix
-          generate_release_notes: true  # Génère automatiquement les notes de release depuis les commits
+          name: vsix
+          path: vscode-extension/*.vsix
+          retention-days: 5
+          if-no-files-found: error
+
+  publish-marketplace:
+    name: publish-marketplace
+    needs: [release-please, build]
+    if: needs.release-please.outputs['vscode-extension--release_created'] == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    environment: vscode-marketplace
+    steps:
+      - name: Download the packaged .vsix
+        # Épinglé par SHA (v4.3.0) : ce job manipule le PAT de publication.
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: vsix
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Publish to the VS Code Marketplace
+        env:
+          # Dette PAT — échéance 2026-12-01 (ADR 0003). Le Marketplace n'accepte
+          # pas encore le trusted publishing OIDC comme Open VSX.
+          VSCE_PAT: ${{ secrets.P_A_T }}
+        run: npx --yes @vscode/vsce publish --packagePath *.vsix -p "$VSCE_PAT"
+
+  publish-openvsx:
+    name: publish-openvsx
+    needs: [release-please, build]
+    if: needs.release-please.outputs['vscode-extension--release_created'] == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # trusted publishing (OIDC) vers Open VSX
+    environment: open-vsx
+    steps:
+      - name: Download the packaged .vsix
+        # Épinglé par SHA (v4.3.0) : ce job publie sur un registre externe.
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: vsix
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Publish to Open VSX
+        # Prérequis manuel (hors T8) : namespace `aphp` + trusted publisher
+        # (`aphp/fhir-mapbuilder` + `release.yml`) sur open-vsx.org. À confirmer
+        # avant la 1re release : la CLI `ovsx` 1.1.1 n'expose que `--pat` —
+        # vérifier le point d'entrée trusted publishing et épingler `ovsx` (ADR 0003).
+        run: npx --yes ovsx publish *.vsix --trusted-publishing
+
+  smoke:
+    name: smoke
+    needs: [release-please, publish-marketplace, publish-openvsx]
+    if: needs.release-please.outputs['vscode-extension--release_created'] == 'true'
+    runs-on: ubuntu-latest
+    permissions: {}
+    # Post-publication : la propagation des deux registres peut traîner. Un échec
+    # ici ne remet pas la release en cause.
+    continue-on-error: true
+    steps:
+      - name: Verify the release is live on both registries
+        env:
+          TAG: ${{ needs.release-please.outputs['vscode-extension--tag_name'] }}
+        run: |
+          set -u
+          version="${TAG#v}"
+          ok_vsce=""
+          ok_ovsx=""
+
+          for i in $(seq 1 10); do
+            if npx --yes @vscode/vsce show aphp.fhir-mapbuilder --json 2>/dev/null \
+                | grep -q "\"version\": *\"$version\""; then
+              echo "marketplace: $version is live"
+              ok_vsce=1
+              break
+            fi
+            echo "marketplace: $version not visible yet ($i/10)"
+            sleep 30
+          done
+
+          for i in $(seq 1 10); do
+            if curl -fsSL "https://open-vsx.org/api/aphp/fhir-mapbuilder/$version" >/dev/null 2>&1; then
+              echo "open-vsx: $version is live"
+              ok_ovsx=1
+              break
+            fi
+            echo "open-vsx: $version not visible yet ($i/10)"
+            sleep 30
+          done
+
+          [ -n "$ok_vsce" ] && [ -n "$ok_ovsx" ]
