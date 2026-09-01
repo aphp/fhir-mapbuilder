@@ -1,0 +1,15 @@
+# OSV-Scanner suppression file — https://google.github.io/osv-scanner/configuration/
+#
+# Passed via `--config=osv-scanner.toml` by both the weekly blocking scan
+# (`.github/workflows/audit.yml`) and the advisory PR scan (`audit-advisory` job
+# in `.github/workflows/ci.yml`). It covers `fhir-mapbuilder-validation/pom.xml`
+# and `vscode-extension/package-lock.json` in a single pass.
+#
+# Empty on purpose: nothing is suppressed today. To silence a specific CVE/GHSA
+# (false positive, unreachable code path, fix not yet available), add a block —
+# and keep the rationale in `CONTRIBUTING.md`:
+#
+#   [[IgnoredVulns]]
+#   id = "GHSA-xxxx-xxxx-xxxx"   # or CVE-YYYY-NNNNN; aliases are matched too
+#   ignoreUntil = 2026-12-31     # optional revisit date; the entry expires on its own
+#   reason = "Not exploitable: the vulnerable code path is never reached (see #NNN)."

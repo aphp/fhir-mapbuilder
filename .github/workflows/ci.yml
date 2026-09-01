@@ -212,3 +212,59 @@ jobs:
             unzip -l "$vsix"
             exit 1
           fi
+
+  dependency-review:
+    name: dependency-review
+    runs-on: ubuntu-latest
+    # PR uniquement : le job compare le graphe de dépendances base <-> head.
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Dependency review
+        # Épinglé au tag exact : le projet ne publie pas de tag majeur mouvant
+        # (`@v5`) — contrairement à actions/checkout & co. Dependabot (écosystème
+        # github-actions) le fait avancer.
+        uses: actions/dependency-review-action@v5.0.0
+        with:
+          # Bloque toute dépendance *nouvellement introduite* portant une
+          # vulnérabilité de sévérité haute ou critique.
+          fail-on-severity: high
+          # Refuse l'entrée de dépendances sous copyleft fort. EPL / MPL-2.0 /
+          # CDDL restent tolérées (non listées ci-dessous).
+          deny-licenses: >-
+            GPL-2.0-only, GPL-2.0-or-later,
+            GPL-3.0-only, GPL-3.0-or-later,
+            AGPL-3.0-only, AGPL-3.0-or-later,
+            LGPL-2.1-only, LGPL-2.1-or-later,
+            LGPL-3.0-only, LGPL-3.0-or-later
+          # Allowlist d'exceptions au cas par cas (PURL), p. ex. :
+          #   pkg:maven/com.example/foo, pkg:npm/bar
+          # Vide = aucune exception.
+          allow-dependencies-licenses: ""
+
+  audit-advisory:
+    name: audit-advisory
+    # PR uniquement, non bloquant (`fail-on-vuln: false`) : ne remonte que les
+    # nouvelles vulnérabilités introduites par la PR et pousse le SARIF dans
+    # l'onglet Security. Le scan hebdo bloquant vit dans `audit.yml`.
+    if: github.event_name == 'pull_request'
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    # Épinglé au tag exact : osv-scanner-action ne publie pas de tag majeur
+    # mouvant (`@v2`). À garder aligné avec OSV_SCANNER_VERSION dans audit.yml.
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@v2.5.1
+    with:
+      fail-on-vuln: false
+      # Applique la allowlist racine `osv-scanner.toml` (elle ne se propage pas
+      # d'elle-même aux manifestes en sous-dossier). Ne pas y mettre --format /
+      # --output : le reusable workflow les fixe lui-même.
+      scan-args: |-
+        --config=./osv-scanner.toml
+        -r
+        ./
