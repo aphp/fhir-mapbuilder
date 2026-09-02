@@ -12,8 +12,8 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <commons.io.version>2.22.0</commons.io.version>
-        <fhir.core.version>6.10.0</fhir.core.version>
-        <health.matchbox.version>4.1.13</health.matchbox.version>
+        <fhir.core.version>6.10.3</fhir.core.version>
+        <health.matchbox.version>4.1.14</health.matchbox.version>
 
         <spotless.plugin.version>3.10.1</spotless.plugin.version>
         <spotbugs.plugin.version>4.10.4.0</spotbugs.plugin.version>
