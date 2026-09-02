@@ -23,7 +23,8 @@ After installation, run java -version in your terminal to verify that the correc
 
 ## FML execution on test data
 This function works thanks to the java package fhir-mapbuilder-validation.jar: the springboot REST API based on
-[the matchbox-engine](https://github.com/ahdis/matchbox), provided in the target folder.
+[the matchbox-engine](https://github.com/ahdis/matchbox), provided in the target folder. This release bundles
+matchbox-engine 4.1.14 (FHIR core 6.10.3).
 
 There is only one engine running, regardless the number of VSCode instance running. It is therefor strongly discouraged to have two FHIR IG oppened in two VSCode instances simultaneously.
 
