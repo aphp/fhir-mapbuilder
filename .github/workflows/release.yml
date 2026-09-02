@@ -242,38 +242,38 @@ jobs:
     if: github.event_name == 'push' && needs.release-please.outputs['vscode-extension--release_created'] == 'true'
     runs-on: ubuntu-latest
     permissions: {}
-    # Post-publication : la propagation des deux registres peut traîner. Un échec
-    # ici ne remet pas la release en cause.
+    # Post-publication : un échec ici ne remet pas la release en cause (elle est
+    # déjà publiée). Le job reste vert dans le cas nominal — un rouge signale
+    # donc une vraie anomalie de propagation Open VSX.
     continue-on-error: true
     steps:
-      - name: Verify the release is live on both registries
+      - name: Verify the release surfaced on Open VSX (Marketplace advisory)
         env:
           TAG: ${{ needs.release-please.outputs['vscode-extension--tag_name'] }}
         run: |
           set -u
           version="${TAG#v}"
-          ok_vsce=""
+
+          # Barrière : Open VSX expose la nouvelle version en ~1 min. 10 min de marge.
           ok_ovsx=""
-
-          for i in $(seq 1 10); do
-            if npx --yes @vscode/vsce show aphp.fhir-mapbuilder --json 2>/dev/null \
-                | grep -q "\"version\": *\"$version\""; then
-              echo "marketplace: $version is live"
-              ok_vsce=1
-              break
-            fi
-            echo "marketplace: $version not visible yet ($i/10)"
-            sleep 30
-          done
-
-          for i in $(seq 1 10); do
+          for i in $(seq 1 20); do
             if curl -fsSL "https://open-vsx.org/api/aphp/fhir-mapbuilder/$version" >/dev/null 2>&1; then
               echo "open-vsx: $version is live"
               ok_ovsx=1
               break
             fi
-            echo "open-vsx: $version not visible yet ($i/10)"
+            echo "open-vsx: $version not visible yet ($i/20)"
             sleep 30
           done
 
-          [ -n "$ok_vsce" ] && [ -n "$ok_ovsx" ]
+          # Advisory : l'ingestion Marketplace peut traîner 15-60 min, bien au-delà
+          # de la fenêtre de ce job. Le succès du job `publish-marketplace` a déjà
+          # prouvé l'upload ; on ne fait que journaliser ici, sans jamais échouer.
+          if npx --yes @vscode/vsce show aphp.fhir-mapbuilder --json 2>/dev/null \
+              | grep -q "\"version\": *\"$version\""; then
+            echo "marketplace: $version is live"
+          else
+            echo "::notice::marketplace: $version pas encore visible via l'API galerie (lag d'ingestion, pas un échec de release). Voir https://marketplace.visualstudio.com/items?itemName=aphp.fhir-mapbuilder"
+          fi
+
+          [ -n "$ok_ovsx" ]
