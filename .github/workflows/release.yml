@@ -54,6 +54,13 @@ jobs:
         id: release
         uses: googleapis/release-please-action@v5
         with:
+          # PAT fine-grained limité à ce repo (Contents / Pull requests / Issues
+          # = write). Les commits de release-please doivent porter une identité
+          # ≠ `GITHUB_TOKEN` pour que `ci.yml` / `commit-policy.yml` tournent sur
+          # la PR de release — GitHub ne déclenche aucun workflow depuis un
+          # événement issu du `GITHUB_TOKEN`. Voir ADR 0003 §Amendments,
+          # wayfinder #126. Dette : ajouter ce PAT à la revue du 2026-12-01.
+          token: ${{ secrets.RELEASE_PLEASE_PAT }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 

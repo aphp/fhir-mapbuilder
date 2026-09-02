@@ -154,3 +154,44 @@ namespace-scoped token for Open VSX).
   the PAT debt above.
 - **Marketplace PAT stored per-environment with no expiry tracking.** Rejected:
   the debt is recorded here with a review date instead.
+
+## Amendments
+
+### 2026-09-02 — the release PR now runs CI, via a fine-grained PAT
+
+Discovered during the first real release (`v1.7.0`, wayfinder map #109): this
+record assumed "`ci.yml` gated the release PR at merge". It did not. GitHub does
+not trigger workflows from events authored by `GITHUB_TOKEN`, so the
+release-please PR never ran `ci.yml` / `commit-policy.yml` and sat `BLOCKED` on
+the `main` ruleset's required checks. `v1.7.0` shipped only after a manual
+close/reopen of the PR (which fires `pull_request: reopened`).
+
+Fix: the `release-please` job in `release.yml` passes a **fine-grained PAT**,
+scoped to this repository only (`contents`, `pull-requests`, `issues` = read &
+write), to `googleapis/release-please-action` as `token:`. release-please's
+commits then carry a non-`GITHUB_TOKEN` identity and trigger the required
+workflows normally. Secret: `RELEASE_PLEASE_PAT`.
+
+A GitHub App token was the first choice (short-lived, no PAT) but `aphp`'s
+org policy blocks App creation/installation for non-owners, so the PAT is the
+usable path. It is a long-lived secret: **add it to the 2026-12-01 PAT review**
+above, and set the shortest expiry the maintainer can commit to renewing.
+
+### 2026-09-02 — the `smoke` job asserts Open VSX only
+
+The `smoke` job required *both* registries to surface the new version within its
+~5-minute poll. The VS Code Marketplace gallery API lags 15–60 min behind a
+successful `vsce publish`, so `smoke` went red on every release for a
+non-problem. It now hard-asserts only **Open VSX** (surfaces in ~1 min) and logs
+Marketplace as an advisory `::notice::` that never fails the job — the
+`publish-marketplace` job's success already proves the upload. (Wayfinder #109.)
+
+### Open — `linked-versions` does not enforce `ext` / `val` lockstep
+
+Also found during `v1.7.0`: `linked-versions` only syncs the version of
+components that *both* have a release candidate, so a change on one side alone
+leaves the other behind (both directions were hit). And `skip-github-release:
+true` on `val` means no `val-v*` tag is cut, so release-please loses `val`'s
+anchor and re-proposes shipped fixes — a `val-v1.7.0` tag was hand-created as a
+stopgap. The durable fix is still to be decided (wayfinder #129); until then,
+each release needs a hand-created `val-v<version>` tag at the release commit.
