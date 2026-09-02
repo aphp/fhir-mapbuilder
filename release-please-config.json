@@ -16,13 +16,15 @@
       "component": "ext",
       "package-name": "fhir-mapbuilder",
       "include-component-in-tag": false,
-      "bump-minor-pre-major": false
+      "bump-minor-pre-major": false,
+      "release-as": "1.7.0"
     },
     "fhir-mapbuilder-validation": {
       "release-type": "maven",
       "component": "val",
       "skip-github-release": true,
-      "skip-snapshot": true
+      "skip-snapshot": true,
+      "release-as": "1.7.0"
     }
   }
 }
