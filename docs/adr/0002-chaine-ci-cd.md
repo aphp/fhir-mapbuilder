@@ -112,7 +112,7 @@ repository in ticket T9:
 | Dependabot alerts | on |
 | Dependabot security updates | **off** (version updates + the audit workflows cover this) |
 | `default_workflow_permissions` | `read` |
-| `can_approve_pull_request_reviews` (Actions) | `false` |
+| `can_approve_pull_request_reviews` (Actions) | `false` — **reverted to `true`, see Amendments** |
 
 The `main` ruleset itself is ADR 0001's domain.
 
@@ -140,3 +140,24 @@ The `main` ruleset itself is ADR 0001's domain.
   PRs and the audit workflows, and would open ungrouped one-off PRs.
 - **Broad `GITHUB_TOKEN` (`write`) by default.** Rejected: least privilege per
   job is the whole point of the `permissions: {}` baseline.
+
+## Amendments
+
+### 2026-09-02 — `can_approve_pull_request_reviews` set back to `true`
+
+The security-posture table above set *"Allow GitHub Actions to create and
+approve pull requests"* (`can_approve_pull_request_reviews`) to `false`. That
+same toggle also governs Actions **creating** PRs, which ADR 0003's release
+automation depends on: the first push to `main` with a releasable commit made
+`release.yml`'s `release-please` job fail with *"GitHub Actions is not permitted
+to create or approve pull requests."*
+
+Resolution: the toggle is set back to **`true`** (`default_workflow_permissions`
+stays `read`). release-please now opens its release PR with the built-in
+`GITHUB_TOKEN`, and no additional long-lived PAT / GitHub App is introduced
+(which keeps the ADR 0003 PAT debt from growing).
+
+Residual exposure — Actions *can* now also approve PRs — is low for this repo:
+the `main` ruleset requires zero approvals, there is no `CODEOWNERS`, and
+Dependabot auto-merge uses `gh pr merge --auto`, not an Actions-side approval.
+(Wayfinder map #109, ticket #121.)
