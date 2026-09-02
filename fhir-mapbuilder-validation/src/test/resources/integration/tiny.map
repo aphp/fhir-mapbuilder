@@ -1,0 +1,11 @@
+map "http://aphp.fr/fhir/StructureMap/tiny" = "tiny"
+
+uses "http://hl7.org/fhir/StructureDefinition/Patient" alias PatientSrc as source
+uses "http://hl7.org/fhir/StructureDefinition/Patient" alias PatientTgt as target
+
+group tiny(source src : PatientSrc, target tgt : PatientTgt) {
+  src.id as s -> tgt.id = s "id";
+  src.active as a -> tgt.active = a "active";
+  src.gender as g -> tgt.gender = g "gender";
+  src.birthDate as b -> tgt.birthDate = b "birthDate";
+}

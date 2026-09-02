@@ -11,8 +11,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import fr.aphp.mapbuilder.model.ParsingError;
+import fr.aphp.mapbuilder.model.TransformationError;
 import fr.aphp.mapbuilder.model.ValidationError;
 import fr.aphp.mapbuilder.service.MatchBoxService;
+import java.io.IOException;
 import org.hl7.fhir.r4.model.StructureMap;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,6 +78,46 @@ class MatchBoxControllerTest {
     void validate_returns400_whenRequiredParamMissing() throws Exception {
         mockMvc.perform(get("/api/matchbox/validate").param("source", "map.fml").param("data", "data.json"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void validate_returns500_whenSetPathsThrows() throws Exception {
+        doThrow(new IOException("disk full")).when(matchBoxService).setPaths(anyString());
+
+        mockMvc.perform(get("/api/matchbox/validate")
+                        .param("source", "map.fml")
+                        .param("data", "data.json")
+                        .param("output", "out"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().string(containsString("Unexpected error")));
+    }
+
+    @Test
+    void validate_returns500_whenTransformationFails() throws Exception {
+        when(matchBoxService.compile(anyString())).thenReturn(new StructureMap());
+        doThrow(new TransformationError("bad transform"))
+                .when(matchBoxService)
+                .transform(any(), anyString(), anyString());
+
+        mockMvc.perform(get("/api/matchbox/validate")
+                        .param("source", "map.fml")
+                        .param("data", "data.json")
+                        .param("output", "out"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().string(containsString("Error during transformation")));
+    }
+
+    @Test
+    void validate_returns500_whenTransformRaisesIoError() throws Exception {
+        when(matchBoxService.compile(anyString())).thenReturn(new StructureMap());
+        doThrow(new IOException("io boom")).when(matchBoxService).transform(any(), anyString(), anyString());
+
+        mockMvc.perform(get("/api/matchbox/validate")
+                        .param("source", "map.fml")
+                        .param("data", "data.json")
+                        .param("output", "out"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().string(containsString("IO Error")));
     }
 
     // ---- /api/matchbox/parse --------------------------------------------------
