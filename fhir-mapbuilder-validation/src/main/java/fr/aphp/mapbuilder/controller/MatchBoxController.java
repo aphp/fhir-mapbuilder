@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/matchbox")
 public class MatchBoxController {
     private final MatchBoxService matchBoxService;
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MatchBoxService.class);
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MatchBoxController.class);
 
     public MatchBoxController(MatchBoxService matchBoxService) {
         this.matchBoxService = matchBoxService;
