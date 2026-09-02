@@ -1,5 +1,12 @@
 # Change Log
 
+## [1.7.0](https://github.com/aphp/fhir-mapbuilder/compare/v1.6.0...v1.7.0) (2026-09-02)
+
+
+### Documentation
+
+* **ext:** record the bundled Matchbox 4.1.14 validation engine ([8b2836b](https://github.com/aphp/fhir-mapbuilder/commit/8b2836b9f17f995bcf2223fcabe00ef734f91666))
+
 ## 1.6.0 (2026-08-24)
 
 Added
