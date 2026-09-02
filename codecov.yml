@@ -5,11 +5,11 @@
 #   - flag `java` : jacoco.xml du module de validation (job test-java)
 #
 # `project` (auto) informe sur la tendance globale des deux composants.
-# `patch` (80 %) est la vraie barrière sur le code neuf : bloquant pour le TS,
-# informatif pour le Java tant que le socle de tests T2 n'atteint pas la cible
-# (repasser le composant `java` en `informational: false` quand la couverture
-# du socle le permet ; sinon garder l'état informatif et documenter le
-# déclencheur ici).
+# `patch` (80 %) est la vraie barrière sur le code neuf, bloquante pour les deux
+# stacks.
+# Le composant `java` porte en plus un statut `project` à 80 % : depuis le socle
+# de tests (wayfinder #116) la couverture absolue du module de validation est
+# tenue au-dessus de 80 % (voir ADR 0002 §« Barrière de couverture »).
 
 coverage:
   status:
@@ -32,10 +32,10 @@ component_management:
       paths:
         - fhir-mapbuilder-validation/**
       statuses:
-        # Non bloquant : le statut `patch` Java remonte mais ne fait pas échouer
-        # la PR tant que le socle de tests n'est pas assez fourni.
-        - type: patch
-          informational: true
+        # Couverture absolue du module tenue >= 80 % depuis le socle (#116).
+        # Le statut `patch` du composant hérite du défaut repo (80 %, bloquant).
+        - type: project
+          target: 80%
 
 flags:
   ts:
