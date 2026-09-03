@@ -51,12 +51,16 @@ same hooks locally (not mandatory).
 
 ### Coverage gate — Codecov (`codecov.yml`)
 
-- Two uploads per PR, flags `ts` and `java`, over **OIDC — no token**.
+- Uploads per PR: two under flag `ts` (out-of-host unit layer +
+  `@vscode/test-cli` integration) and one under flag `java`, all over
+  **OIDC — no token**. Codecov merges the two `ts` reports by union.
 - `project` status `auto` (0 % threshold); `patch` status target **80 %**.
-- `component_management`: a `ts` component (patch enforced) and a `java`
-  component whose patch status is `informational` until the Java test socle
-  reaches the target (trigger recorded in `codecov.yml`).
-- `ignore`: Spring entrypoint, `model/**`, `config/**`, `test/**`.
+- `component_management`: a `ts` component (`paths: vscode-extension/src/**`)
+  and a `java` component, **each carrying a `project` 80 % status** (exact
+  mirrors); both also inherit the repo `patch` 80 %. The `java` gate landed
+  with socle #116, the `ts` gate with socle #136 (see Amendments).
+- `ignore`: Spring entrypoint, `model/**`, `config/**`, `test/**` (the last
+  also covers `vscode-extension/src/test/**`).
 
 ### Dependency hygiene
 
@@ -142,6 +146,32 @@ The `main` ruleset itself is ADR 0001's domain.
   job is the whole point of the `permissions: {}` baseline.
 
 ## Amendments
+
+### 2026-09-03 — the `ts` Codecov component becomes blocking (`project` 80 %)
+
+Two mentions in §"Coverage gate" above were stale: the `ts` component described
+as carrying only the repo `patch` 80 %, and the `java` component as
+`informational` until its socle.
+
+- `java`: socle #116 made its `project` 80 % blocking (already in `codecov.yml`).
+- `ts`: the VS Code extension coverage socle (wayfinder map #136) takes
+  `vscode-extension/src/**` above 80 % line coverage. The `ts` component now
+  carries a `project` 80 % status of its own, an exact mirror of `java`; its
+  `paths` is narrowed from `vscode-extension/**` to `vscode-extension/src/**`.
+
+Unchanged: repo `patch` 80 % (both stacks), repo `project` `auto`/0 % (trend),
+tokenless OIDC upload. `ts` coverage is now pushed as **two uploads** under the
+`ts` flag — an out-of-host unit layer (`mocha` + `sinon`, `require("vscode")`
+stubbed via a `Module._load` hook; suites in `src/test/unit/`) and the existing
+`@vscode/test-cli` integration suite — which Codecov merges by union. The
+`test-ts` job carries both test steps and both `codecov-action` steps; both
+c8 runs report every `src/**` file with a real denominator (unit run:
+`c8 --all --src src`; integration run: `.vscode-test.mjs` `includeAll: true` +
+`srcDir: 'src'`).
+
+`codecov/project/ts` is added to the `main` ruleset's `required_status_checks`
+once green (ADR 0001 "as each one first goes green"). (Wayfinder map #136,
+tickets #137–#142; execution #144–#150.)
 
 ### 2026-09-02 — `can_approve_pull_request_reviews` set back to `true`
 

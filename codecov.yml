@@ -1,15 +1,17 @@
 # Barrière de couverture Codecov — voir ADR 0002 (chaîne CI/CD) et le spec #80.
 #
-# Deux stacks, deux uploads distincts poussés par ci.yml via OIDC (sans token) :
-#   - flag `ts`   : lcov de l'extension VS Code (job test-ts)
+# Deux stacks, uploads poussés par ci.yml via OIDC (sans token) :
+#   - flag `ts`   : lcov unitaire + lcov d'intégration de l'extension VS Code
+#                   (job test-ts, deux uploads fusionnés par union côté Codecov)
 #   - flag `java` : jacoco.xml du module de validation (job test-java)
 #
 # `project` (auto) informe sur la tendance globale des deux composants.
 # `patch` (80 %) est la vraie barrière sur le code neuf, bloquante pour les deux
 # stacks.
-# Le composant `java` porte en plus un statut `project` à 80 % : depuis le socle
-# de tests (wayfinder #116) la couverture absolue du module de validation est
-# tenue au-dessus de 80 % (voir ADR 0002 §« Barrière de couverture »).
+# Les composants `ts` et `java` portent chacun un statut `project` à 80 % : depuis
+# leurs socles de tests respectifs (wayfinder #116 pour `java`, #136 pour `ts`) la
+# couverture absolue de chaque module est tenue au-dessus de 80 %
+# (voir ADR 0002 §« Barrière de couverture »).
 
 coverage:
   status:
@@ -26,7 +28,12 @@ component_management:
     - component_id: ts
       name: ts
       paths:
-        - vscode-extension/**
+        - vscode-extension/src/**
+      statuses:
+        # Couverture absolue du module tenue >= 80 % depuis le socle (#136).
+        # Le statut `patch` du composant hérite du défaut repo (80 %, bloquant).
+        - type: project
+          target: 80%
     - component_id: java
       name: java
       paths:

@@ -3,7 +3,13 @@ import { defineConfig } from '@vscode/test-cli';
 export default defineConfig({
 	tests: [
 		{
-			files: 'out/test/**/*.test.js',
+			// Suite d'intégration seule (hôte d'extension). Le glob reste au
+			// premier niveau de `out/test/` : la couche unitaire hors-hôte
+			// (`out/test/unit/**/*.unit.test.js`) tourne sous `npm run test:unit`
+			// avec le stub `vscode`, elle ne doit pas être chargée ici.
+			files: 'out/test/*.test.js',
+			// Répertoire source scanné par `includeAll` ci-dessous.
+			srcDir: 'src',
 		},
 	],
 	// Couverture : avec `vscode-test --coverage`, @vscode/test-cli collecte le
@@ -16,5 +22,10 @@ export default defineConfig({
 		reporter: ['text-summary', 'lcov'],
 		output: './coverage',
 		exclude: ['**/node_modules/**', '**/test/**'],
+		// `includeAll` : chaque fichier de `srcDir` (`src`, défini sur l'entrée
+		// `tests` ci-dessus) apparaît dans le lcov même s'il n'est chargé par
+		// aucun test, avec son vrai dénominateur de lignes (sinon un fichier non
+		// chargé compterait comme 100 %). Voir spec #143 / wayfinder #137.
+		includeAll: true,
 	},
 });

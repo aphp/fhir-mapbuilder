@@ -117,12 +117,30 @@ jobs:
         run: npm ci
         working-directory: vscode-extension
 
-      - name: Run extension tests with coverage (with xvfb)
-        # `--coverage` -> @vscode/test-cli + c8 -> vscode-extension/coverage/lcov.info
-        run: xvfb-run -a npm test -- --coverage
+      - name: Build extension and test sources
+        # `pretest` = compile-tests + compile (esbuild -> dist/) + lint ; requis
+        # par les deux couches de test ci-dessous.
+        run: npm run pretest
         working-directory: vscode-extension
 
-      - name: Upload coverage to Codecov (flag ts)
+      - name: Run unit tests with coverage
+        # couche hors-hôte : mocha + c8 `--all --src src` -> coverage/unit/lcov.info
+        run: npm run test:unit
+        working-directory: vscode-extension
+
+      - name: Run extension tests with coverage (with xvfb)
+        # `--coverage` -> @vscode/test-cli + c8 -> vscode-extension/coverage/lcov.info
+        run: xvfb-run -a npm run test:integration -- --coverage
+        working-directory: vscode-extension
+
+      - name: Upload unit coverage to Codecov (flag ts)
+        uses: codecov/codecov-action@v7
+        with:
+          use_oidc: true
+          files: vscode-extension/coverage/unit/lcov.info
+          flags: ts
+
+      - name: Upload extension coverage to Codecov (flag ts)
         uses: codecov/codecov-action@v7
         with:
           use_oidc: true
