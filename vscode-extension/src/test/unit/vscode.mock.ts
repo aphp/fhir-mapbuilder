@@ -269,3 +269,16 @@ export function resetVscodeMock(): void {
     installedExtension = undefined;
     configStore.clear();
 }
+
+// Some source files use `import vscode, { … } from "vscode"` and reach for
+// `vscode.window.*`; give the default export the same shape as the namespace.
+export default {
+    workspace,
+    window,
+    extensions,
+    Uri,
+    FileType,
+    ProgressLocation,
+    ConfigurationTarget,
+    CompletionItem,
+};
