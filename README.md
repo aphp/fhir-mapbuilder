@@ -2,7 +2,6 @@
 
 [![CI](https://github.com/aphp/fhir-mapbuilder/actions/workflows/ci.yml/badge.svg)](https://github.com/aphp/fhir-mapbuilder/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/aphp/fhir-mapbuilder/branch/main/graph/badge.svg)](https://codecov.io/gh/aphp/fhir-mapbuilder)
-[![VS Code Marketplace](https://img.shields.io/badge/VS_Code_Marketplace-aphp.fhir--mapbuilder-0098FF?logo=visualstudiocode&logoColor=white)](https://marketplace.visualstudio.com/items?itemName=aphp.fhir-mapbuilder)
 [![Open VSX](https://img.shields.io/open-vsx/v/aphp/fhir-mapbuilder?label=Open%20VSX)](https://open-vsx.org/extension/aphp/fhir-mapbuilder)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.md)
 
