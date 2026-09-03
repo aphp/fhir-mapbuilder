@@ -67,14 +67,19 @@ jobs:
         # leurs checks sur son HEAD SHA = HEAD de la PR. Rejoué à chaque push
         # `main` qui met la PR à jour (force-push de release-please inclus).
         # Voir ADR 0003 §Amendments, wayfinder #126.
-        if: steps.release.outputs.pr
+        # `pr` est vide quand aucun push n'ouvre de PR de release ; `fromJSON('')`
+        # casserait le template même avec un `if:` faux, donc on garde sur
+        # `prs_created` et on lit la branche au `jq` dans le script, pas en `env`.
+        if: steps.release.outputs.prs_created == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          PR_BRANCH: ${{ fromJSON(steps.release.outputs.pr).headBranchName }}
+          RELEASE_PR: ${{ steps.release.outputs.pr }}
         run: |
-          gh workflow run ci.yml            --ref "$PR_BRANCH"
-          gh workflow run commit-policy.yml --ref "$PR_BRANCH"
+          branch="$(printf '%s' "$RELEASE_PR" | jq -r '.headBranchName')"
+          echo "release PR branch: $branch"
+          gh workflow run ci.yml            --ref "$branch"
+          gh workflow run commit-policy.yml --ref "$branch"
 
   build:
     name: build
