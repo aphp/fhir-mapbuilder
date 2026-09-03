@@ -1,5 +1,12 @@
 # Change Log
 
+## [1.7.1](https://github.com/aphp/fhir-mapbuilder/compare/v1.7.0...v1.7.1) (2026-09-03)
+
+
+### Build System
+
+* force a 1.7.1 release to exercise the pipeline ([8cf60e2](https://github.com/aphp/fhir-mapbuilder/commit/8cf60e241105939f8757e81670648d84245bab03))
+
 ## [1.7.0](https://github.com/aphp/fhir-mapbuilder/compare/v1.6.0...v1.7.0) (2026-09-02)
 
 
