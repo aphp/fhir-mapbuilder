@@ -154,3 +154,64 @@ namespace-scoped token for Open VSX).
   the PAT debt above.
 - **Marketplace PAT stored per-environment with no expiry tracking.** Rejected:
   the debt is recorded here with a review date instead.
+
+## Amendments
+
+### 2026-09-03 — the release PR runs CI via a self-kick, not a token
+
+Discovered during the first real release (`v1.7.0`, wayfinder map #109): this
+record assumed "`ci.yml` gated the release PR at merge". It did not. GitHub does
+not trigger workflows from events authored by the workflow `GITHUB_TOKEN`, so
+the release-please PR never ran `ci.yml` / `commit-policy.yml` and sat `BLOCKED`
+on the `main` ruleset's required checks. `v1.7.0` shipped only after a manual
+close/reopen of the PR.
+
+Two token-based fixes were considered and dropped:
+
+- **GitHub App token** for `release-please-action` (its own recommended fix).
+  Rejected: `aphp` org policy blocks App creation/installation for non-owners,
+  and the driver is repo admin, not org owner.
+- **Fine-grained PAT** scoped to this repo, passed as `token:`. Rejected: same
+  org policy can gate fine-grained PATs targeting org resources, and it adds a
+  long-lived, human-tied secret to the PAT debt above.
+
+Fix (option D, no new secret): the `release-please` job in `release.yml`, after
+running the action, re-triggers `ci.yml` and `commit-policy.yml` against the
+release PR's head branch with `gh workflow run` (`workflow_dispatch` is the one
+event that fires even from a `GITHUB_TOKEN` context). The dispatched runs report
+their check contexts on the branch HEAD SHA, which is the PR HEAD SHA, so the
+`main` ruleset's required checks resolve. The step is guarded by
+`steps.release.outputs.pr` — it fires only when a release PR was opened or
+updated, and re-fires on every `main` push that updates it. Needs `actions:
+write` on the job.
+
+On the release PR the six `ci.yml` validation jobs run for real. The remaining
+required contexts — `dependency-review`, `dco`, `commitlint`, `pr-title` — are
+guarded to `pull_request` / `pull_request_target` and are therefore *skipped* on
+the `workflow_dispatch` run; GitHub treats a skipped required check as passing.
+This is acceptable: the release-please commit's DCO trailer and Conventional
+form are guaranteed structurally by `signoff` + `chore(main): release …` in
+`release-please-config.json` (see Consequences), not by re-running `dco` /
+`commitlint` on it. If a future GitHub change stops treating skipped required
+checks as passing, the contingency is to run those three jobs for real under
+`workflow_dispatch` (rework their `if:` guards and derive base/head SHAs from
+`main`..the release branch).
+
+### 2026-09-02 — the `smoke` job asserts Open VSX only
+
+The `smoke` job required *both* registries to surface the new version within its
+~5-minute poll. The VS Code Marketplace gallery API lags 15–60 min behind a
+successful `vsce publish`, so `smoke` went red on every release for a
+non-problem. It now hard-asserts only **Open VSX** (surfaces in ~1 min) and logs
+Marketplace as an advisory `::notice::` that never fails the job — the
+`publish-marketplace` job's success already proves the upload. (Wayfinder #109.)
+
+### Open — `linked-versions` does not enforce `ext` / `val` lockstep
+
+Also found during `v1.7.0`: `linked-versions` only syncs the version of
+components that *both* have a release candidate, so a change on one side alone
+leaves the other behind (both directions were hit). And `skip-github-release:
+true` on `val` means no `val-v*` tag is cut, so release-please loses `val`'s
+anchor and re-proposes shipped fixes — a `val-v1.7.0` tag was hand-created as a
+stopgap. The durable fix is still to be decided (wayfinder #129); until then,
+each release needs a hand-created `val-v<version>` tag at the release commit.

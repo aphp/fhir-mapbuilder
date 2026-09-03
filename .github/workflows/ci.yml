@@ -5,6 +5,12 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  # Déclenché à la main par `release.yml` sur la branche de la PR de release :
+  # release-please ouvre cette PR via le `GITHUB_TOKEN`, ce qui ne déclenche
+  # aucun `pull_request`. `workflow_dispatch` est l'exception qui part quand
+  # même depuis un contexte `GITHUB_TOKEN` — il rapporte les checks requis sur
+  # le HEAD de la PR de release. Voir ADR 0003 §Amendments, wayfinder #126.
+  workflow_dispatch:
 
 # Annule les runs en cours si un nouveau push arrive sur la même branche/PR
 concurrency:

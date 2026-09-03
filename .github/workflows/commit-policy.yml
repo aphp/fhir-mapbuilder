@@ -7,6 +7,14 @@ on:
   pull_request_target:
     branches: [ main ]
     types: [opened, edited, reopened, synchronize]
+  # Déclenché à la main par `release.yml` sur la branche de la PR de release
+  # (celle-ci n'émet aucun `pull_request` : release-please l'ouvre via le
+  # `GITHUB_TOKEN`). `dco` / `commitlint` / `pr-title` restent gardés sur leurs
+  # événements et sont donc *skippés* ici — GitHub compte un check requis skippé
+  # comme réussi. Le commit de release-please est structurellement garanti
+  # (`signoff` + `chore(main): release …`, cf. ADR 0003). Voir ADR 0003
+  # §Amendments, wayfinder #126.
+  workflow_dispatch:
 
 # Aucune permission par défaut : chaque job élève au strict minimum ce dont il a besoin.
 permissions: {}
