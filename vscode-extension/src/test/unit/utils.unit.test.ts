@@ -26,10 +26,7 @@ import {
     testPath,
 } from "../../utils";
 import { resetVscodeMock, setConfig, window } from "./vscode.mock";
-
-function makeLogger(): OutputChannel {
-    return { appendLine: sinon.spy() } as unknown as OutputChannel;
-}
+import { makeLogger } from "./_helpers";
 
 suite("utils", () => {
     let logger: OutputChannel;

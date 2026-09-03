@@ -7,7 +7,6 @@ import * as sinon from "sinon";
 import { EventEmitter } from "events";
 import fs from "fs";
 import type * as ChildProcessNS from "node:child_process";
-import type { OutputChannel } from "vscode";
 
 // Raw require (not `import * as`): the star import is wrapped by `__importStar`
 // into a copy with non-configurable getters that sinon cannot stub. This shares
@@ -16,14 +15,7 @@ import type { OutputChannel } from "vscode";
 const childProcess: typeof ChildProcessNS = require("node:child_process");
 import { MapBuilderJavaProcess } from "../../MapBuilderJavaProcess";
 import { resetVscodeMock, setConfig, setInstalledExtension, setWorkspaceFolders, window } from "./vscode.mock";
-
-function makeLogger(): OutputChannel {
-    return { appendLine: sinon.spy() } as unknown as OutputChannel;
-}
-
-function priv(instance: MapBuilderJavaProcess): Record<string, (...args: unknown[]) => unknown> {
-    return instance as unknown as Record<string, (...args: unknown[]) => unknown>;
-}
+import { makeLogger, priv } from "./_helpers";
 
 suite("MapBuilderJavaProcess", () => {
     let proc: MapBuilderJavaProcess;

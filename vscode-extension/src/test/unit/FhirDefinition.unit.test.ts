@@ -13,18 +13,10 @@ import type { OutputChannel } from "vscode";
 import { FhirDefinition } from "../../FhirDefinition";
 import * as utils from "../../utils";
 import { FileType, resetVscodeMock, Uri, window, workspace } from "./vscode.mock";
-
-function makeLogger(): OutputChannel {
-    return { appendLine: sinon.spy() } as unknown as OutputChannel;
-}
+import { makeLogger, priv } from "./_helpers";
 
 function encode(text: string): Uint8Array {
     return new TextEncoder().encode(text);
-}
-
-/** Access a private member for white-box testing. */
-function priv(instance: FhirDefinition): Record<string, (...args: unknown[]) => unknown> {
-    return instance as unknown as Record<string, (...args: unknown[]) => unknown>;
 }
 
 suite("FhirDefinition", () => {

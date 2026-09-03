@@ -11,10 +11,7 @@ import { FmlCompletionProvider } from "../../FmlCompletionProvider";
 import type { FhirDefinition } from "../../FhirDefinition";
 import * as utils from "../../utils";
 import { resetVscodeMock, setWorkspaceFolders, Uri } from "./vscode.mock";
-
-function makeLogger(): OutputChannel {
-    return { appendLine: sinon.spy() } as unknown as OutputChannel;
-}
+import { makeLogger } from "./_helpers";
 
 function makeDefinitionProvider(): FhirDefinition {
     return {

@@ -5,15 +5,9 @@
 import * as assert from "assert";
 import * as sinon from "sinon";
 import axios from "axios";
-import type { OutputChannel } from "vscode";
 import { MapBuilderValidationApi } from "../../MapBuilderValidationApi";
 import { resetVscodeMock, setConfig, setWorkspaceFolders, window } from "./vscode.mock";
-
-const noopChannel = { appendLine: () => {}, append: () => {} } as unknown as OutputChannel;
-
-function priv(instance: MapBuilderValidationApi): Record<string, (...args: unknown[]) => unknown> {
-    return instance as unknown as Record<string, (...args: unknown[]) => unknown>;
-}
+import { noopChannel, priv } from "./_helpers";
 
 suite("MapBuilderValidationApi", () => {
     let get: sinon.SinonStub;

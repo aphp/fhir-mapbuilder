@@ -5,22 +5,16 @@
 import * as assert from "assert";
 import * as sinon from "sinon";
 import fs from "fs";
-import type { OutputChannel } from "vscode";
 import { FmlValidation } from "../../FmlValidation";
 import type { MapBuilderValidationApi } from "../../MapBuilderValidationApi";
 import { resetVscodeMock, setWorkspaceFolders, Uri, window } from "./vscode.mock";
-
-const noopChannel = { appendLine: () => {}, append: () => {} } as unknown as OutputChannel;
+import { noopChannel, priv } from "./_helpers";
 
 function makeApi(): MapBuilderValidationApi {
     return {
         callValidateStructureMap: sinon.stub().resolves(true),
         callResetAndLoadEngine: sinon.stub().resolves("loaded"),
     } as unknown as MapBuilderValidationApi;
-}
-
-function priv(instance: FmlValidation): Record<string, (...args: unknown[]) => unknown> {
-    return instance as unknown as Record<string, (...args: unknown[]) => unknown>;
 }
 
 suite("FmlValidation", () => {

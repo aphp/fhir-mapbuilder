@@ -4,13 +4,11 @@
  */
 import * as assert from "assert";
 import * as sinon from "sinon";
-import type { OutputChannel } from "vscode";
 import { MapBuilderWatcher } from "../../MapBuilderWatcher";
 import type { MapBuilderValidationApi } from "../../MapBuilderValidationApi";
 import * as utils from "../../utils";
 import { resetVscodeMock, setWorkspaceFolders, Uri, window } from "./vscode.mock";
-
-const noopChannel = { appendLine: () => {}, append: () => {} } as unknown as OutputChannel;
+import { noopChannel } from "./_helpers";
 
 function makeApi(): MapBuilderValidationApi {
     return {
