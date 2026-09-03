@@ -165,8 +165,9 @@ tokenless OIDC upload. `ts` coverage is now pushed as **two uploads** under the
 stubbed via a `Module._load` hook; suites in `src/test/unit/`) and the existing
 `@vscode/test-cli` integration suite — which Codecov merges by union. The
 `test-ts` job carries both test steps and both `codecov-action` steps; both
-c8 runs use `all: true` / `--all --src src` so every `src/**` file has a real
-denominator.
+c8 runs report every `src/**` file with a real denominator (unit run:
+`c8 --all --src src`; integration run: `.vscode-test.mjs` `includeAll: true` +
+`srcDir: 'src'`).
 
 `codecov/project/ts` is added to the `main` ruleset's `required_status_checks`
 once green (ADR 0001 "as each one first goes green"). (Wayfinder map #136,
