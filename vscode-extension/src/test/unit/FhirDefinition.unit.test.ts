@@ -12,8 +12,8 @@ import fs from "fs";
 import type { OutputChannel } from "vscode";
 import { FhirDefinition } from "../../FhirDefinition";
 import * as utils from "../../utils";
-import { FileType, resetVscodeMock, Uri, window, workspace } from "./vscode.mock";
-import { makeLogger, priv } from "./_helpers";
+import { FileType, Uri, window, workspace } from "./vscode.mock";
+import { makeLogger, priv, standardTeardown } from "./_helpers";
 
 function encode(text: string): Uint8Array {
     return new TextEncoder().encode(text);
@@ -29,10 +29,7 @@ suite("FhirDefinition", () => {
         def = new FhirDefinition(logger);
     });
 
-    teardown(() => {
-        sinon.restore();
-        resetVscodeMock();
-    });
+    teardown(standardTeardown);
 
     test("constructor wires a sushi-config watcher", () => {
         assert.ok(def.fsWatcher);

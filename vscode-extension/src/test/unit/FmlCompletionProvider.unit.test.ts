@@ -10,8 +10,8 @@ import type { OutputChannel } from "vscode";
 import { FmlCompletionProvider } from "../../FmlCompletionProvider";
 import type { FhirDefinition } from "../../FhirDefinition";
 import * as utils from "../../utils";
-import { resetVscodeMock, setWorkspaceFolders, Uri } from "./vscode.mock";
-import { makeLogger } from "./_helpers";
+import { setWorkspaceFolders, Uri } from "./vscode.mock";
+import { makeLogger, standardTeardown } from "./_helpers";
 
 function makeDefinitionProvider(): FhirDefinition {
     return {
@@ -33,10 +33,7 @@ suite("FmlCompletionProvider", () => {
         sinon.stub(console, "error");
     });
 
-    teardown(() => {
-        sinon.restore();
-        resetVscodeMock();
-    });
+    teardown(standardTeardown);
 
     suite("constructor", () => {
         test("does nothing without workspace folders", () => {

@@ -6,8 +6,8 @@ import * as assert from "assert";
 import * as sinon from "sinon";
 import axios from "axios";
 import { MapBuilderValidationApi } from "../../MapBuilderValidationApi";
-import { resetVscodeMock, setConfig, setWorkspaceFolders, window } from "./vscode.mock";
-import { noopChannel, priv } from "./_helpers";
+import { setConfig, setWorkspaceFolders, window } from "./vscode.mock";
+import { noopChannel, priv, standardTeardown } from "./_helpers";
 
 suite("MapBuilderValidationApi", () => {
     let get: sinon.SinonStub;
@@ -18,10 +18,7 @@ suite("MapBuilderValidationApi", () => {
         api = new MapBuilderValidationApi(noopChannel);
     });
 
-    teardown(() => {
-        sinon.restore();
-        resetVscodeMock();
-    });
+    teardown(standardTeardown);
 
     suite("isAppRunning", () => {
         test("true on HTTP 200", async () => {

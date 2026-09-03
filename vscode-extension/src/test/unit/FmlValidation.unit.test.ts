@@ -7,8 +7,8 @@ import * as sinon from "sinon";
 import fs from "fs";
 import { FmlValidation } from "../../FmlValidation";
 import type { MapBuilderValidationApi } from "../../MapBuilderValidationApi";
-import { resetVscodeMock, setWorkspaceFolders, Uri, window } from "./vscode.mock";
-import { noopChannel, priv } from "./_helpers";
+import { setWorkspaceFolders, Uri, window } from "./vscode.mock";
+import { noopChannel, priv, standardTeardown } from "./_helpers";
 
 function makeApi(): MapBuilderValidationApi {
     return {
@@ -26,10 +26,7 @@ suite("FmlValidation", () => {
         val = new FmlValidation(noopChannel, api);
     });
 
-    teardown(() => {
-        sinon.restore();
-        resetVscodeMock();
-    });
+    teardown(standardTeardown);
 
     suite("loadPackage", () => {
         test("shows an info message with the returned package message", async () => {

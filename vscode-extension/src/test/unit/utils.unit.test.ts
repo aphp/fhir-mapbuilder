@@ -25,8 +25,8 @@ import {
     retrieveUrlAliasAs,
     testPath,
 } from "../../utils";
-import { resetVscodeMock, setConfig, window } from "./vscode.mock";
-import { makeLogger } from "./_helpers";
+import { setConfig, window } from "./vscode.mock";
+import { makeLogger, standardTeardown } from "./_helpers";
 
 suite("utils", () => {
     let logger: OutputChannel;
@@ -37,10 +37,7 @@ suite("utils", () => {
         sinon.stub(console, "error");
     });
 
-    teardown(() => {
-        sinon.restore();
-        resetVscodeMock();
-    });
+    teardown(standardTeardown);
 
     suite("string parsing helpers", () => {
         test("retrieveLines keeps only lines starting with the prefix", () => {

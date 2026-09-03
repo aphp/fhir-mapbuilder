@@ -7,8 +7,8 @@ import * as sinon from "sinon";
 import { MapBuilderWatcher } from "../../MapBuilderWatcher";
 import type { MapBuilderValidationApi } from "../../MapBuilderValidationApi";
 import * as utils from "../../utils";
-import { resetVscodeMock, setWorkspaceFolders, Uri, window } from "./vscode.mock";
-import { noopChannel } from "./_helpers";
+import { setWorkspaceFolders, Uri, window } from "./vscode.mock";
+import { noopChannel, standardTeardown } from "./_helpers";
 
 function makeApi(): MapBuilderValidationApi {
     return {
@@ -28,10 +28,7 @@ suite("MapBuilderWatcher", () => {
         api = makeApi();
     });
 
-    teardown(() => {
-        sinon.restore();
-        resetVscodeMock();
-    });
+    teardown(standardTeardown);
 
     function makeWatcher(): MapBuilderWatcher {
         return new MapBuilderWatcher(noopChannel, api);

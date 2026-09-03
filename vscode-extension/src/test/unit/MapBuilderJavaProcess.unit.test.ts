@@ -14,8 +14,8 @@ import type * as ChildProcessNS from "node:child_process";
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const childProcess: typeof ChildProcessNS = require("node:child_process");
 import { MapBuilderJavaProcess } from "../../MapBuilderJavaProcess";
-import { resetVscodeMock, setConfig, setInstalledExtension, setWorkspaceFolders, window } from "./vscode.mock";
-import { makeLogger, priv } from "./_helpers";
+import { setConfig, setInstalledExtension, setWorkspaceFolders, window } from "./vscode.mock";
+import { makeLogger, priv, standardTeardown } from "./_helpers";
 
 suite("MapBuilderJavaProcess", () => {
     let proc: MapBuilderJavaProcess;
@@ -25,10 +25,7 @@ suite("MapBuilderJavaProcess", () => {
         sinon.stub(console, "error");
     });
 
-    teardown(() => {
-        sinon.restore();
-        resetVscodeMock();
-    });
+    teardown(standardTeardown);
 
     suite("extractLogMessage", () => {
         test("returns the tail from the startup keyword", () => {

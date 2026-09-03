@@ -3,6 +3,13 @@
  */
 import * as sinon from "sinon";
 import type { OutputChannel } from "vscode";
+import { resetVscodeMock } from "./vscode.mock";
+
+/** Standard `teardown` for a unit suite: restore sinon, reset the vscode mock. */
+export function standardTeardown(): void {
+    sinon.restore();
+    resetVscodeMock();
+}
 
 /** A logger whose `appendLine` is a spy; everything else is absent. */
 export function makeLogger(): OutputChannel {
