@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/aphp/fhir-mapbuilder/actions/workflows/ci.yml/badge.svg)](https://github.com/aphp/fhir-mapbuilder/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/aphp/fhir-mapbuilder/branch/main/graph/badge.svg)](https://codecov.io/gh/aphp/fhir-mapbuilder)
-[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/aphp.fhir-mapbuilder?label=VS%20Code%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=aphp.fhir-mapbuilder)
+[![VS Code Marketplace](https://img.shields.io/badge/VS_Code_Marketplace-aphp.fhir--mapbuilder-0098FF?logo=visualstudiocode&logoColor=white)](https://marketplace.visualstudio.com/items?itemName=aphp.fhir-mapbuilder)
 [![Open VSX](https://img.shields.io/open-vsx/v/aphp/fhir-mapbuilder?label=Open%20VSX)](https://open-vsx.org/extension/aphp/fhir-mapbuilder)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.md)
 
@@ -65,7 +65,7 @@ After running this command, the JAR file `fhir-mapbuilder-validation.jar` will b
 
 ```sh
 cd ..
-mkdir vscode-extension/target
+mkdir -p vscode-extension/target
 mv fhir-mapbuilder-validation/target/fhir-mapbuilder-validation.jar vscode-extension/target
 ```
 
@@ -73,8 +73,8 @@ mv fhir-mapbuilder-validation/target/fhir-mapbuilder-validation.jar vscode-exten
 
 ```sh
 cd vscode-extension
-npm install
-vsce package --baseImagesUrl=https://raw.githubusercontent.com/aphp/fhir-mapbuilder/refs/heads/main/vscode-extension
+npm ci
+npx vsce package --baseImagesUrl=https://raw.githubusercontent.com/aphp/fhir-mapbuilder/refs/heads/main/vscode-extension
 ```
 
 This command will generate a `.vsix` file, which can be installed in VS Code.
@@ -101,11 +101,11 @@ design is recorded in [`docs/adr/`](docs/adr/).
 
 | Workflow | Trigger | What it does | ADR |
 |---|---|---|---|
-| **`ci.yml`** | PR, push to `main` | Lint / format / type checks, the TypeScript and Java test suites with Codecov coverage, `dependency-review` + advisory OSV scan on PRs, and a build that packages the `.vsix` and smoke-tests the bundled validation jar. | [0002](docs/adr/0002-chaine-ci-cd.md) |
-| **`commit-policy.yml`** | PR, PR title edits | Every non-merge commit and the PR title must be a valid Conventional Commit and carry a DCO `Signed-off-by` trailer. | [0001](docs/adr/0001-politique-de-commits.md) |
+| **`ci.yml`** | PR, push to `main`, manual | Lint, format and type checks; the TypeScript and Java test suites with Codecov coverage (the `ts` and `java` components each gate at 80 %); `dependency-review` and an advisory OSV scan on PRs; a `build` job that packages the `.vsix`, smoke-tests the validation jar over `GET /health` and asserts the jar is bundled into the `.vsix`. | [0002](docs/adr/0002-chaine-ci-cd.md) |
+| **`commit-policy.yml`** | PR opened / edited / synchronized, manual | `dco` and `commitlint` check every non-merge commit (a DCO `Signed-off-by` trailer, a valid Conventional Commit); `pr-title` validates the PR title, which becomes the merge-commit subject. Also runs on `pull_request_target`, so PRs from forks are covered. | [0001](docs/adr/0001-politique-de-commits.md) |
 | **`audit.yml`** | Weekly cron, manual | Blocking OSV-Scanner run over `pom.xml` + `package-lock.json`; opens a deduplicated `dependencies` issue on a real finding and uploads the SARIF to the Security tab. | [0002](docs/adr/0002-chaine-ci-cd.md) |
 | **`dependabot-auto-merge.yml`** | Dependabot PRs | Enables auto-merge for patch updates and for minor updates of direct dev-dependencies. | [0002](docs/adr/0002-chaine-ci-cd.md) |
-| **`release.yml`** | push to `main` | [release-please](https://github.com/googleapis/release-please) maintains a release PR from the commit history; merging it cuts the tag + GitHub Release, then the pipeline builds the `.vsix` and publishes it to the VS Code Marketplace and Open VSX. | [0003](docs/adr/0003-versioning-release-monorepo.md) |
+| **`release.yml`** | push to `main`, manual (`dry_run`) | [release-please](https://github.com/googleapis/release-please) maintains a release PR from the commit history; merging it cuts the tag + GitHub Release, then `build` → `publish-marketplace` / `publish-openvsx` package and publish the `.vsix` to both registries, and a post-publish `smoke` job checks the new version surfaced on Open VSX. `workflow_dispatch` replays the pipeline — package-only by default, publishing only with `dry_run: false`. | [0003](docs/adr/0003-versioning-release-monorepo.md) |
 
 ## 📜 License
 
