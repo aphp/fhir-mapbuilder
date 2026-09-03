@@ -206,12 +206,41 @@ non-problem. It now hard-asserts only **Open VSX** (surfaces in ~1 min) and logs
 Marketplace as an advisory `::notice::` that never fails the job — the
 `publish-marketplace` job's success already proves the upload. (Wayfinder #109.)
 
-### Open — `linked-versions` does not enforce `ext` / `val` lockstep
+### 2026-09-03 — one release-please component, not two linked ones
 
-Also found during `v1.7.0`: `linked-versions` only syncs the version of
-components that *both* have a release candidate, so a change on one side alone
-leaves the other behind (both directions were hit). And `skip-github-release:
-true` on `val` means no `val-v*` tag is cut, so release-please loses `val`'s
-anchor and re-proposes shipped fixes — a `val-v1.7.0` tag was hand-created as a
-stopgap. The durable fix is still to be decided (wayfinder #129); until then,
-each release needs a hand-created `val-v<version>` tag at the release commit.
+The `linked-versions` + two-component (`ext` / `val`) setup above had two
+structural faults, both hit during `v1.7.0` (wayfinder #129):
+
+1. **Lockstep was not enforced.** `linked-versions` only syncs components that
+   *both* have a release candidate, so a one-sided change left the other behind
+   — in both directions. `v1.7.0` was `val`-only and needed a `Release-As:`
+   footer on a throwaway `vscode-extension/` commit (PR #125) to drag `ext`
+   along; a later `val`-only patch was proposed alone (PR #127, closed). The
+   Consequences section's "can no longer drift" was false.
+2. **`val` was not tagged.** `skip-github-release: true` on `val` meant no
+   `val-v*` tag, so release-please lost `val`'s anchor, rescanned from
+   `bootstrap-sha`, and re-proposed shipped fixes. Worked around by
+   hand-creating `val-v1.7.0`.
+
+Fix: **collapse to a single release-please component** rooted at the repo
+(`"."`), `release-type: simple`, `include-component-in-tag: false` (so the tag
+stays `v<version>` and the existing `v1.7.0` is still the anchor). It bumps
+`vscode-extension/package.json` + `package-lock.json` and
+`fhir-mapbuilder-validation/pom.xml` through `extra-files` (JSON `$.version` /
+`$.packages[''].version`; XML xpath on the project `<version>`). Because the
+component's path is `"."`, commits under *either* directory drive the single
+version — the drift is now mechanically impossible, not merely intended, and
+there is no second component to anchor or tag. `linked-versions` and the `val`
+package are gone; `.release-please-manifest.json` has one key (`"."`).
+`fhir-mapbuilder-validation/CHANGELOG.md` is frozen at 1.7.0 with a pointer;
+all notes now land in `vscode-extension/CHANGELOG.md` (Marketplace changelog
+tab), `val`-scoped commits included — a validation fix *is* a change to the
+shipped product. `release.yml` reads the now-unprefixed
+`release_created` / `tag_name` action outputs. The hand-created `val-v1.7.0`
+tag is left as a historical marker; no new `val-v*` tags are cut.
+
+Validated with `release-please release-pr --dry-run` (the `.` component anchors
+to `v1.7.0`, a `val`-only `fix:` bumps the single version, all four extra-file
+updaters resolve). The old **Consequences** bullet "versions can no longer
+drift — `linked-versions` moves them together" now holds for a different reason:
+there is only one version.

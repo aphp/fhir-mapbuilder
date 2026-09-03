@@ -4,7 +4,7 @@ name: Release
 #
 # Sur push `main` : `release-please` ouvre / met à jour la PR de release. Quand
 # cette PR est mergée, release-please crée le tag + la GitHub Release et expose
-# `vscode-extension--release_created == 'true'` : déclencheur des jobs
+# `release_created == 'true'` : déclencheur des jobs
 # `build` -> `publish-*` -> `smoke`.
 #
 # `workflow_dispatch` (input `dry_run`) : répétition manuelle du pipeline.
@@ -46,10 +46,10 @@ jobs:
       issues: write # release-please étiquette des issues liées
       actions: write # `gh workflow run` : re-déclencher les checks sur la PR de release
     outputs:
-      # Nom de sortie confirmé par le dry-run local : release-please-action
-      # préfixe chaque sortie par le chemin du paquet (`vscode-extension--…`).
-      vscode-extension--release_created: ${{ steps.release.outputs['vscode-extension--release_created'] }}
-      vscode-extension--tag_name: ${{ steps.release.outputs['vscode-extension--tag_name'] }}
+      # Composant racine unique (`.` dans release-please-config.json) : les
+      # sorties de release-please-action ne sont donc pas préfixées par un chemin.
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - name: Run release-please
         id: release
@@ -83,7 +83,7 @@ jobs:
     if: >-
       !cancelled()
       && (
-        (github.event_name == 'push' && needs.release-please.outputs['vscode-extension--release_created'] == 'true')
+        (github.event_name == 'push' && needs.release-please.outputs.release_created == 'true')
         || github.event_name == 'workflow_dispatch'
       )
     runs-on: ubuntu-latest
@@ -93,7 +93,7 @@ jobs:
       - name: Checkout the release tag (or main on dispatch)
         uses: actions/checkout@v7
         with:
-          ref: ${{ needs.release-please.outputs['vscode-extension--tag_name'] || github.sha }}
+          ref: ${{ needs.release-please.outputs.tag_name || github.sha }}
           persist-credentials: false
 
       - name: Set up Node.js
@@ -168,7 +168,7 @@ jobs:
         if: github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ needs.release-please.outputs['vscode-extension--tag_name'] }}
+          TAG: ${{ needs.release-please.outputs.tag_name }}
         run: |
           gh release upload "$TAG" \
             vscode-extension/*.vsix \
@@ -192,7 +192,7 @@ jobs:
       !cancelled()
       && needs.build.result == 'success'
       && (
-        (github.event_name == 'push' && needs.release-please.outputs['vscode-extension--release_created'] == 'true')
+        (github.event_name == 'push' && needs.release-please.outputs.release_created == 'true')
         || (github.event_name == 'workflow_dispatch' && inputs.dry_run == false)
       )
     runs-on: ubuntu-latest
@@ -225,7 +225,7 @@ jobs:
       !cancelled()
       && needs.build.result == 'success'
       && (
-        (github.event_name == 'push' && needs.release-please.outputs['vscode-extension--release_created'] == 'true')
+        (github.event_name == 'push' && needs.release-please.outputs.release_created == 'true')
         || (github.event_name == 'workflow_dispatch' && inputs.dry_run == false)
       )
     runs-on: ubuntu-latest
@@ -258,7 +258,7 @@ jobs:
     needs: [release-please, publish-marketplace, publish-openvsx]
     # Vraie release uniquement : sur `workflow_dispatch` les jobs `publish-*` sont
     # sautés, ce job l'est donc aussi.
-    if: github.event_name == 'push' && needs.release-please.outputs['vscode-extension--release_created'] == 'true'
+    if: github.event_name == 'push' && needs.release-please.outputs.release_created == 'true'
     runs-on: ubuntu-latest
     permissions: {}
     # Post-publication : un échec ici ne remet pas la release en cause (elle est
@@ -268,7 +268,7 @@ jobs:
     steps:
       - name: Verify the release surfaced on Open VSX (Marketplace advisory)
         env:
-          TAG: ${{ needs.release-please.outputs['vscode-extension--tag_name'] }}
+          TAG: ${{ needs.release-please.outputs.tag_name }}
         run: |
           set -u
           version="${TAG#v}"

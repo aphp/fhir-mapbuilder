@@ -1,28 +1,20 @@
 {
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
   "bootstrap-sha": "b92a3e0e7678f81e6c3a697004a044d9783c4062",
-  "separate-pull-requests": false,
   "signoff": "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>",
-  "plugins": [
-    {
-      "type": "linked-versions",
-      "groupName": "fhir-mapbuilder",
-      "components": ["ext", "val"]
-    }
-  ],
   "packages": {
-    "vscode-extension": {
-      "release-type": "node",
-      "component": "ext",
+    ".": {
+      "release-type": "simple",
       "package-name": "fhir-mapbuilder",
       "include-component-in-tag": false,
-      "bump-minor-pre-major": false
-    },
-    "fhir-mapbuilder-validation": {
-      "release-type": "maven",
-      "component": "val",
-      "skip-github-release": true,
-      "skip-snapshot": true
+      "changelog-path": "vscode-extension/CHANGELOG.md",
+      "bump-minor-pre-major": false,
+      "extra-files": [
+        { "type": "json", "path": "vscode-extension/package.json", "jsonpath": "$.version" },
+        { "type": "json", "path": "vscode-extension/package-lock.json", "jsonpath": "$.version" },
+        { "type": "json", "path": "vscode-extension/package-lock.json", "jsonpath": "$.packages[''].version" },
+        { "type": "xml", "path": "fhir-mapbuilder-validation/pom.xml", "xpath": "//*[local-name()='project']/*[local-name()='version']" }
+      ]
     }
   }
 }
