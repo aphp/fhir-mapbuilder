@@ -16,5 +16,11 @@ export default defineConfig({
 		reporter: ['text-summary', 'lcov'],
 		output: './coverage',
 		exclude: ['**/node_modules/**', '**/test/**'],
+		// `all` + `src` : chaque fichier de `src/**` apparaît dans le lcov même
+		// s'il n'est chargé par aucun test, avec son vrai dénominateur de lignes
+		// (sinon un fichier non chargé compterait comme 100 %). Voir spec #143 /
+		// wayfinder #137.
+		all: true,
+		src: ['src'],
 	},
 });
