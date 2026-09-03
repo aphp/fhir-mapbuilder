@@ -44,6 +44,7 @@ jobs:
       contents: write # créer le tag et la GitHub Release
       pull-requests: write # ouvrir / mettre à jour la PR de release
       issues: write # release-please étiquette des issues liées
+      actions: write # `gh workflow run` : re-déclencher les checks sur la PR de release
     outputs:
       # Nom de sortie confirmé par le dry-run local : release-please-action
       # préfixe chaque sortie par le chemin du paquet (`vscode-extension--…`).
@@ -56,6 +57,24 @@ jobs:
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+      - name: Kick required checks onto the release PR
+        # release-please ouvre / met à jour sa PR via le `GITHUB_TOKEN`, ce qui
+        # n'émet aucun `pull_request` : `ci.yml` / `commit-policy.yml` ne
+        # tournent pas et la PR reste BLOCKED sur les checks requis. On les
+        # relance via `workflow_dispatch` (seul déclencheur qui part depuis un
+        # contexte `GITHUB_TOKEN`) sur la branche de la PR ; les runs rapportent
+        # leurs checks sur son HEAD SHA = HEAD de la PR. Rejoué à chaque push
+        # `main` qui met la PR à jour (force-push de release-please inclus).
+        # Voir ADR 0003 §Amendments, wayfinder #126.
+        if: steps.release.outputs.pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR_BRANCH: ${{ fromJSON(steps.release.outputs.pr).headBranchName }}
+        run: |
+          gh workflow run ci.yml            --ref "$PR_BRANCH"
+          gh workflow run commit-policy.yml --ref "$PR_BRANCH"
 
   build:
     name: build
