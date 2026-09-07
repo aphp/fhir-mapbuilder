@@ -120,9 +120,13 @@ jobs:
     permissions:
       issues: write
     steps:
+      # Pas de `actions/checkout` ici : `GH_REPO` suffit à `gh` pour cibler le
+      # dépôt. Sans lui, `gh` tombe sur « fatal: not a git repository » et le job
+      # échoue sans jamais ouvrir l'issue.
       - name: Créer l'issue « dependencies » (dédoublonnée par titre)
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
           TITLE: "osv-scanner : vulnérabilité connue dans les dépendances"
           RUN_URL: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         run: |
