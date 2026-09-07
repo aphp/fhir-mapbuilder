@@ -1,5 +1,13 @@
 # Change Log
 
+## [1.7.2](https://github.com/aphp/fhir-mapbuilder/compare/v1.7.1...v1.7.2) (2026-09-07)
+
+
+### Bug Fixes
+
+* **audit:** set GH_REPO so the open-issue job can reach gh ([88f46b9](https://github.com/aphp/fhir-mapbuilder/commit/88f46b9529d81049726a67890febaa594963312f))
+* **audit:** set GH_REPO so the open-issue job can reach gh ([fa510c0](https://github.com/aphp/fhir-mapbuilder/commit/fa510c00efba49ece9d36b634562b668009dd837))
+
 ## [1.7.1](https://github.com/aphp/fhir-mapbuilder/compare/v1.7.0...v1.7.1) (2026-09-03)
 
 
