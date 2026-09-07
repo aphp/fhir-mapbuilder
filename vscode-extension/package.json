@@ -189,5 +189,13 @@
     "rimraf": "^6.0.1",
     "sinon": "^22.1.0",
     "typescript": "^5.4.5"
+  },
+  "//overrides": "Correctifs de sécurité forcés sur des dépendances transitives (toutes sous devDependencies, aucune bundlée par esbuild). OSV-Scanner / issue #167. Retirer une entrée dès que le parent direct tire au moins cette version.",
+  "overrides": {
+    "qs@6.15.3": "6.16.0",
+    "serialize-javascript@6.0.2": "7.0.5",
+    "@humanfs/node@0.16.7": "0.16.8",
+    "fast-uri@3.1.5": "3.1.7",
+    "diff@7.0.0": "8.0.4"
   }
 }
