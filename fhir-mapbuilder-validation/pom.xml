@@ -13,6 +13,16 @@
         <fhir.core.version>6.10.3</fhir.core.version>
         <health.matchbox.version>4.1.14</health.matchbox.version>
 
+        <!-- Correctifs de sécurité : versions forcées au-delà de ce que gère
+             spring-boot-starter-parent 3.5.16 (dernier patch de la lignée 3.x).
+             OSV-Scanner / issue #167. À retirer dès qu'un parent Spring Boot
+             embarque au moins ces versions. -->
+        <tomcat.version>10.1.59</tomcat.version>             <!-- CVE-2026-68525 / -65182 / -65905 (fix 10.1.58) -->
+        <jackson-bom.version>2.21.6</jackson-bom.version>    <!-- GHSA-mhm7-754m-9p8w, CVE-2026-54515 / -59889 (fix 2.21.5) -->
+        <log4j2.version>2.25.5</log4j2.version>              <!-- CVE-2026-49844 (fix 2.25.5) -->
+        <commons-lang3.version>3.18.0</commons-lang3.version> <!-- CVE-2025-48924 (fix 3.18.0) -->
+        <opentelemetry.version>1.62.0</opentelemetry.version> <!-- CVE-2026-45292 (fix 1.62.0) ; hors BOM Spring Boot, cf. dependencyManagement -->
+
         <spotless.plugin.version>3.10.1</spotless.plugin.version>
         <spotbugs.plugin.version>4.10.4.0</spotbugs.plugin.version>
         <jacoco.plugin.version>0.8.15</jacoco.plugin.version>
@@ -27,6 +37,22 @@
     <groupId>fr.aphp</groupId>
     <artifactId>fhir-mapbuilder-validation</artifactId>
     <version>1.7.1</version>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- OpenTelemetry n'est pas géré par le BOM Spring Boot ; il arrive
+                 en transitif via hapi-fhir-base (org.hl7.fhir.r5). Import du BOM
+                 pour aligner opentelemetry-api + opentelemetry-context sur la
+                 version corrigée. OSV-Scanner / issue #167. -->
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-bom</artifactId>
+                <version>${opentelemetry.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <!-- Spring Boot Web Starter -->
