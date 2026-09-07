@@ -21,7 +21,7 @@
         <jackson-bom.version>2.21.6</jackson-bom.version>    <!-- GHSA-mhm7-754m-9p8w, CVE-2026-54515 / -59889 (fix 2.21.5) -->
         <log4j2.version>2.25.5</log4j2.version>              <!-- CVE-2026-49844 (fix 2.25.5) -->
         <commons-lang3.version>3.18.0</commons-lang3.version> <!-- CVE-2025-48924 (fix 3.18.0) -->
-        <opentelemetry.version>1.62.0</opentelemetry.version> <!-- CVE-2026-45292 (fix 1.62.0) ; hors BOM Spring Boot, cf. dependencyManagement -->
+        <opentelemetry.version>1.65.0</opentelemetry.version> <!-- CVE-2026-45292 (fix 1.62.0) ; hors BOM Spring Boot, cf. dependencyManagement -->
 
         <spotless.plugin.version>3.10.1</spotless.plugin.version>
         <spotbugs.plugin.version>4.10.4.0</spotbugs.plugin.version>
