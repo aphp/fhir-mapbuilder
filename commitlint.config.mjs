@@ -8,6 +8,15 @@
  */
 export default {
   extends: ['@commitlint/config-conventional'],
+  // Dependabot writes its own commit subjects (`build(deps-dev): bump the
+  // <group> group across N directories with M updates`) which routinely exceed
+  // `header-max-length` and which we cannot shorten without amending — and thus
+  // orphaning — the PR. Skip any commit carrying Dependabot's Signed-off-by
+  // trailer; every human-authored commit stays fully checked. Keeps the
+  // config-conventional default ignores (revert commits, etc.) in place.
+  ignores: [
+    (message) => /^Signed-off-by: dependabot\[bot\] </m.test(message),
+  ],
   rules: {
     // Allowed commit types. Narrower than the Angular default on purpose:
     // these are the only types release-please is configured to act on.
