@@ -23,7 +23,7 @@
         <commons-lang3.version>3.18.0</commons-lang3.version> <!-- CVE-2025-48924 (fix 3.18.0) -->
         <opentelemetry.version>1.65.0</opentelemetry.version> <!-- CVE-2026-45292 (fix 1.62.0) ; hors BOM Spring Boot, cf. dependencyManagement -->
 
-        <spotless.plugin.version>3.10.1</spotless.plugin.version>
+        <spotless.plugin.version>3.10.2</spotless.plugin.version>
         <spotbugs.plugin.version>4.10.4.0</spotbugs.plugin.version>
         <jacoco.plugin.version>0.8.15</jacoco.plugin.version>
     </properties>
