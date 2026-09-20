@@ -7,20 +7,31 @@ name: Release
 # `release_created == 'true'` : déclencheur des jobs
 # `build` -> `publish-*` -> `smoke`.
 #
-# `workflow_dispatch` (input `dry_run`) : répétition manuelle du pipeline.
-#   - `dry_run: true` (défaut) — `build` package le `.vsix` et le smoke-teste,
-#     rien n'est publié, aucun tag / Release / PR de release n'est touché
-#     (`release-please` est sauté). Voir wayfinder #113.
-#   - `dry_run: false` — chemin de publication / reprise manuelle : `build` puis
-#     `publish-*` sur le HEAD de `main` (utile si un merge de PR de release n'a
-#     rien déclenché, ou pour rejouer une publication après correction d'un PAT).
+# `workflow_dispatch` (inputs `publish_tag`, `dry_run`) : répétition ou reprise
+# manuelle du pipeline. `release-please` est toujours sauté : rien ne touche la
+# PR de release, le tag ni la GitHub Release existante.
+#   - sans `publish_tag` — répétition à blanc sur le HEAD de la branche choisie :
+#     `build` package le `.vsix` et le smoke-teste, RIEN n'est jamais publié
+#     (`dry_run: false` est refusé sans tag). Voir wayfinder #113.
+#   - avec `publish_tag` (tag `vX.Y.Z` existant) — `build` se place sur ce tag ;
+#     la garde vérifie que `package.json`, `pom.xml` et le `.vsix` portent sa
+#     version. `dry_run: true` (défaut) s'arrête là. `dry_run: false` reprend la
+#     publication : ré-upload des assets sur la Release existante, `publish-*`,
+#     puis `smoke`. Utile après l'échec partiel d'une release (tag et Release
+#     déjà créés par release-please) ou pour rejouer après correction d'un PAT.
+#     ADR 0003 §Amendments (2026-09-20).
 on:
   push:
     branches: [main]
   workflow_dispatch:
     inputs:
+      publish_tag:
+        description: "Existing release tag (vX.Y.Z) to rebuild and, with dry_run=false, republish. Leave empty for a rehearsal on HEAD."
+        type: string
+        required: false
+        default: ""
       dry_run:
-        description: "Package + smoke only, do not publish"
+        description: "Package + smoke only, do not publish (publishing by hand needs publish_tag)"
         type: boolean
         default: true
 
@@ -40,6 +51,7 @@ jobs:
     # release, ni le tag, ni la GitHub Release.
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    timeout-minutes: 5 # mesuré : ~12 s
     permissions:
       contents: write # créer le tag et la GitHub Release
       pull-requests: write # ouvrir / mettre à jour la PR de release
@@ -92,14 +104,54 @@ jobs:
         || github.event_name == 'workflow_dispatch'
       )
     runs-on: ubuntu-latest
+    timeout-minutes: 15 # mesuré : ~2 min ; le smoke du jar attend jusqu'à 120 s
     permissions:
-      contents: write # gh release upload (push uniquement)
+      contents: write # gh release upload (release réelle ou reprise)
+    env:
+      # Tag à construire : celui de la release qui vient d'être coupée, ou celui
+      # d'une reprise manuelle. Vide pour une répétition sans tag (HEAD).
+      TAG: ${{ needs.release-please.outputs.tag_name || inputs.publish_tag }}
     steps:
-      - name: Checkout the release tag (or main on dispatch)
+      - name: Validate the dispatch inputs
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          PUBLISH_TAG: ${{ inputs.publish_tag }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          if [ -n "$PUBLISH_TAG" ] && ! printf '%s' "$PUBLISH_TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::publish_tag '$PUBLISH_TAG' is not a release tag (expected vX.Y.Z)"
+            exit 1
+          fi
+          if [ "$DRY_RUN" = "false" ] && [ -z "$PUBLISH_TAG" ]; then
+            echo "::error::publishing by hand needs publish_tag (an existing vX.Y.Z tag); without it the dispatch is a rehearsal, use dry_run=true"
+            exit 1
+          fi
+
+      - name: Checkout the release tag (or the dispatched ref on a rehearsal)
         uses: actions/checkout@v7
         with:
-          ref: ${{ needs.release-please.outputs.tag_name || github.sha }}
+          ref: ${{ env.TAG || github.sha }}
           persist-credentials: false
+
+      - name: Check the tag matches the sources
+        # Garde bloquante, avant tout packaging ou publication : ce qu'on
+        # construit doit porter la version du tag. Sautée pour une répétition
+        # sans tag. ADR 0003 §Amendments (2026-09-20).
+        if: env.TAG != ''
+        run: |
+          version="${TAG#v}"
+          pkg="$(python3 -c "import json; print(json.load(open('vscode-extension/package.json'))['version'])")"
+          pom="$(python3 -c "import xml.etree.ElementTree as ET; print(ET.parse('fhir-mapbuilder-validation/pom.xml').getroot().find('{*}version').text)")"
+          status=0
+          if [ "$pkg" != "$version" ]; then
+            echo "::error file=vscode-extension/package.json::version $pkg does not match tag $TAG"
+            status=1
+          fi
+          if [ "$pom" != "$version" ]; then
+            echo "::error file=fhir-mapbuilder-validation/pom.xml::version $pom does not match tag $TAG"
+            status=1
+          fi
+          exit "$status"
 
       - name: Set up Node.js
         uses: actions/setup-node@v7
@@ -155,6 +207,20 @@ jobs:
         run: npx vsce package --baseImagesUrl=https://raw.githubusercontent.com/aphp/fhir-mapbuilder/refs/heads/main/vscode-extension
         working-directory: vscode-extension
 
+      - name: Check the .vsix matches the tag
+        # Dernière garde avant l'upload et la publication : le fichier produit
+        # par `vsce package` doit être `<name>-<version du tag>.vsix`.
+        if: env.TAG != ''
+        working-directory: vscode-extension
+        run: |
+          name="$(python3 -c "import json; print(json.load(open('package.json'))['name'])")"
+          expected="$name-${TAG#v}.vsix"
+          if [ ! -f "$expected" ]; then
+            echo "::error::expected $expected for tag $TAG, found: $(ls ./*.vsix 2>&1)"
+            exit 1
+          fi
+          echo "$expected matches tag $TAG"
+
       - name: Assert the validation jar is bundled in the .vsix
         working-directory: vscode-extension
         run: |
@@ -169,11 +235,14 @@ jobs:
           fi
 
       - name: Attach the .vsix and jar to the GitHub Release
-        # Vraie release uniquement : sur `workflow_dispatch` il n'y a pas de Release.
-        if: github.event_name == 'push'
+        # Vraie release, ou reprise (`publish_tag` + `dry_run: false`) : la Release
+        # existe déjà (créée par release-please), `--clobber` rend le ré-upload
+        # idempotent. Une répétition (`dry_run: true`) ne touche pas la Release.
+        if: >-
+          github.event_name == 'push'
+          || (github.event_name == 'workflow_dispatch' && inputs.dry_run == false)
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ needs.release-please.outputs.tag_name }}
         run: |
           gh release upload "$TAG" \
             vscode-extension/*.vsix \
@@ -191,16 +260,17 @@ jobs:
   publish-marketplace:
     name: publish-marketplace
     needs: [release-please, build]
-    # Vraie release, OU dispatch explicitement `dry_run: false` (publication /
-    # reprise manuelle). Un dispatch par défaut ne publie jamais.
+    # Vraie release, OU reprise explicite : dispatch avec `publish_tag` ET
+    # `dry_run: false`. Un dispatch par défaut, ou sans tag, ne publie jamais.
     if: >-
       !cancelled()
       && needs.build.result == 'success'
       && (
         (github.event_name == 'push' && needs.release-please.outputs.release_created == 'true')
-        || (github.event_name == 'workflow_dispatch' && inputs.dry_run == false)
+        || (github.event_name == 'workflow_dispatch' && inputs.dry_run == false && inputs.publish_tag != '')
       )
     runs-on: ubuntu-latest
+    timeout-minutes: 10 # mesuré : ~1 min
     permissions:
       contents: read
     environment: vscode-marketplace
@@ -231,9 +301,10 @@ jobs:
       && needs.build.result == 'success'
       && (
         (github.event_name == 'push' && needs.release-please.outputs.release_created == 'true')
-        || (github.event_name == 'workflow_dispatch' && inputs.dry_run == false)
+        || (github.event_name == 'workflow_dispatch' && inputs.dry_run == false && inputs.publish_tag != '')
       )
     runs-on: ubuntu-latest
+    timeout-minutes: 10 # mesuré : ~30 s
     permissions:
       contents: read
     environment: open-vsx
@@ -261,10 +332,16 @@ jobs:
   smoke:
     name: smoke
     needs: [release-please, publish-marketplace, publish-openvsx]
-    # Vraie release uniquement : sur `workflow_dispatch` les jobs `publish-*` sont
-    # sautés, ce job l'est donc aussi.
-    if: github.event_name == 'push' && needs.release-please.outputs.release_created == 'true'
+    # Vraie release, ou reprise (`publish_tag` + `dry_run: false`) : c'est-à-dire
+    # quand les deux `publish-*` ont réellement tourné. `release-please` est sauté
+    # sur `workflow_dispatch`, d'où `!cancelled()` (le `success()` implicite
+    # sauterait ce job) et les tests explicites sur les résultats.
+    if: >-
+      !cancelled()
+      && needs.publish-marketplace.result == 'success'
+      && needs.publish-openvsx.result == 'success'
     runs-on: ubuntu-latest
+    timeout-minutes: 20 # mesuré : ~8,5 min ; la boucle Open VSX attend jusqu'à 10 min
     permissions: {}
     # Post-publication : un échec ici ne remet pas la release en cause (elle est
     # déjà publiée). Le job reste vert dans le cas nominal — un rouge signale
@@ -273,7 +350,7 @@ jobs:
     steps:
       - name: Verify the release surfaced on Open VSX (Marketplace advisory)
         env:
-          TAG: ${{ needs.release-please.outputs.tag_name }}
+          TAG: ${{ needs.release-please.outputs.tag_name || inputs.publish_tag }}
         run: |
           set -u
           version="${TAG#v}"

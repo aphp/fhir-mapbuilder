@@ -87,6 +87,42 @@ by release automation. Before opening (or updating) a PR:
   well-described change.
 - Do not merge `main` into your branch to "catch up" — rebase instead.
 
+## Releasing
+
+Releases are automated by [release-please](https://github.com/googleapis/release-please)
+(ADR 0003); nobody tags by hand.
+
+- **The release PR.** Every push to `main` updates one standing PR
+  (`chore(main): release X.Y.Z`) built from the Conventional Commits since the
+  last tag. It only exists while the generated changelog is non-empty, and
+  release-please hides `build`, `chore`, `docs` and `test`: a `feat`, a `fix` or
+  a `fix(deps)` is what opens it (see the shipped-dependency rule above).
+  Merging it bumps `vscode-extension/package.json`, its lockfile and
+  `fhir-mapbuilder-validation/pom.xml`, cuts the `vX.Y.Z` tag and the GitHub
+  Release, then `release.yml` builds the `.vsix` and publishes it to both
+  registries. Nothing is published until you merge that PR.
+- **Forcing a release.** When only hidden commit types have landed but you want
+  to ship (for example a README-only fix), add a `Release-As: X.Y.Z` footer to a
+  commit body, in a normal PR like any other change:
+
+  ```
+  build: force a 1.7.4 release
+
+  Release-As: 1.7.4
+  ```
+
+  The footer must be part of a commit that lands on `main`; the release PR then
+  proposes exactly that version.
+- **Recovering a release.** If the automated run failed after release-please had
+  already created the tag (so the build or a publish never completed), replay it
+  from *Actions → Release → Run workflow*: set `publish_tag` to the existing
+  `vX.Y.Z` tag and `dry_run` to `false`. The run rebuilds at that tag, checks that
+  `package.json`, `pom.xml` and the `.vsix` carry its version, re-uploads the
+  assets to the existing GitHub Release, publishes to both registries and runs
+  the smoke check. With `dry_run: true` (the default) it stops after the checks
+  and publishes nothing; with no `publish_tag` it is a rehearsal on `HEAD` that
+  can never publish.
+
 ## Security and dependency audits
 
 Vulnerability scanning (Maven + npm) runs through [OSV-Scanner](https://osv.dev/).
