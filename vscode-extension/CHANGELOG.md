@@ -1,5 +1,15 @@
 # Change Log
 
+## [1.7.4](https://github.com/aphp/fhir-mapbuilder/compare/v1.7.3...v1.7.4) (2026-09-20)
+
+
+### Bug Fixes
+
+* require an API token for the local validation server ([8bab2bc](https://github.com/aphp/fhir-mapbuilder/commit/8bab2bceac7a732d44b0c075685434a7fad9cfac))
+* require an API token for the local validation server ([62cf964](https://github.com/aphp/fhir-mapbuilder/commit/62cf964ea53f64f406a6ab31bdd4f8b71c963dc8)), closes [#198](https://github.com/aphp/fhir-mapbuilder/issues/198)
+* **validation:** listen on the loopback interface only ([d7fd57e](https://github.com/aphp/fhir-mapbuilder/commit/d7fd57ec15c90b1c97c3ca7cb700f1e0d8892fc3))
+* **validation:** listen on the loopback interface only ([235c138](https://github.com/aphp/fhir-mapbuilder/commit/235c1382f42fe92f593f0868b89c0d76f533f511))
+
 ## [1.7.3](https://github.com/aphp/fhir-mapbuilder/compare/v1.7.2...v1.7.3) (2026-09-20)
 
 
