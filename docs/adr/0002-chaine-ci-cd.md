@@ -55,8 +55,8 @@ same hooks locally (not mandatory).
 - Uploads per PR: two under flag `ts` (out-of-host unit layer +
   `@vscode/test-cli` integration) and one under flag `java`, all over
   **OIDC — no token**. Codecov merges the two `ts` reports by union.
-- `project` status `auto` (**1 %** threshold, 0 % until 2026-09-20; advisory, not
-  a required check); `patch` status target **80 %**.
+- `project` status `auto` (**1 %** threshold, 0 % until 2026-09-20; advisory by the
+  maintainer's choice, not a required check); `patch` status target **80 %**.
 - `component_management`: a `ts` component (`paths: vscode-extension/src/**`)
   and a `java` component, **each carrying a `project` 90 % status** (80 % until
   2026-09-20; exact mirrors); both also inherit the repo `patch` 80 %. The
@@ -276,8 +276,10 @@ what changed in `codecov.yml`:
 - **Repo `project` status.** It stays `auto`, and its threshold goes from 0 % to
   **1 %** (a PR cannot lower the total by more than one point), with no numeric
   target. It is **advisory**: `codecov/project` is not among the required checks
-  of the `main` ruleset, so a breach shows a red check without blocking the merge
-  until it is added to the ruleset (a separate change).
+  of the `main` ruleset, so a breach shows a red check without blocking the merge.
+  This is the maintainer's choice: the proposal to require it (#217) was closed as
+  not planned, because the overall coverage rate is not to be mandatory. The
+  component floors and `patch` stay required; the total of the repository does not.
 - **Ignore.** `**/config/**` is replaced by `**/config/MatchboxEngineConfig.java`.
   The broad pattern hid `ApiTokenFilter`, the authentication code of the
   validation server, although its tests cover it fully. `MatchboxEngineConfig`
