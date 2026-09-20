@@ -44,6 +44,13 @@ required). If you use [pre-commit](https://pre-commit.com/), run `pre-commit
 install` once and it will apply the formatters on every commit. SpotBugs and
 `tsc` stay CI-only.
 
+ESLint (`cd vscode-extension && npm run lint`) has no `warn` level: a project rule
+is `error`, or `off` with a dated reason in `eslint.config.js`. A new rule arrives
+as `error`; violations that cannot be fixed at once are frozen in
+`eslint-suppressions.json` (`npx eslint src --suppress-all`), never downgraded to
+`warn`. ESLint fails on a suppression whose violation was fixed, so after fixing
+one, run `npx eslint src --prune-suppressions` and commit the result.
+
 ## Commit style
 
 - **Conventional Commits.** Every non-merge commit must be a valid
