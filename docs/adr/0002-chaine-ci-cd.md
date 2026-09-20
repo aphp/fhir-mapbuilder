@@ -328,8 +328,10 @@ not be flagged.
 - **What.** "Automatic dependency submission" is enabled in the repository settings
   (Settings, Advanced Security, Dependency graph). Like the CodeQL default setup
   above, it is a repository setting with no workflow file: GitHub runs a dynamic
-  workflow on each push to `main` that resolves the Maven tree and submits it to
-  the dependency graph.
+  workflow each time a commit to `main` updates a manifest (`pom.xml`), which
+  resolves the Maven tree and submits it to the dependency graph. A push that
+  changes no manifest does not trigger it (GitHub documentation: "it'll run each
+  time a commit to the default branch updates a manifest").
 - **Effect to expect.** The number of Dependabot alerts may rise at once: those
   would be real advisories on transitive dependencies that were already present but
   invisible, not a regression of the code. The "open alerts" reading of the
@@ -343,4 +345,6 @@ not be flagged.
 
 The setting itself cannot be read from the repository: the dynamic workflow appears
 in the Actions list after its first run, and the Maven package count of the graph
-is the signal that it works.
+is the signal that it works. The first run waits for the next `pom.xml` change on
+`main`: a Maven update from Dependabot (weekly, on Monday) or the release PR, which
+bumps the module version. Until then the count stays at 11.
