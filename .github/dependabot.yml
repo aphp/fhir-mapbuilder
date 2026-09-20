@@ -45,11 +45,6 @@ updates:
           - "minor"
           - "patch"
     ignore:
-      # fhir.core.version must stay whatever version health.matchbox:matchbox-engine
-      # itself requires — never bumped independently, or the two can drift out of
-      # compatibility. Bump it by hand alongside a matchbox-engine version bump instead.
-      - dependency-name: "ca.uhn.hapi.fhir:org.hl7.fhir.r4"
-      - dependency-name: "ca.uhn.hapi.fhir:org.hl7.fhir.r5"
       # Spring Boot 4 migration deferred (wayfinder map #48, decision ticket #50):
       # small effort, no blocker found, just not scheduled yet. Still take
       # minor/patch updates within the 3.x line automatically.
