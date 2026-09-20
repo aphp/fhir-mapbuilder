@@ -5,6 +5,10 @@ name: Audit dépendances
 # `package-lock.json`, publie le SARIF dans l'onglet Security, et — sur une vraie
 # détection de vulnérabilité — ouvre une issue `dependencies` dédoublonnée par
 # titre. Mécanisme de suppression par CVE : `osv-scanner.toml` (cf. CONTRIBUTING.md).
+#
+# Une vulnérabilité trouvée est un résultat du scan, pas une panne : le job reste
+# vert et le signal passe par l'onglet Security et l'issue. Le job n'échoue que si
+# le scan lui-même ne peut pas être mené (aucun paquet ramassé, panne du binaire).
 on:
   schedule:
     - cron: "0 6 * * 1" # lundi 06:00 UTC
@@ -23,7 +27,7 @@ env:
 
 jobs:
   audit:
-    name: osv-scanner (bloquant)
+    name: osv-scanner
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -56,7 +60,9 @@ jobs:
         #
         # Le code de sortie est classé à la main :
         #   0                 -> aucune vulnérabilité
-        #   1                 -> vulnérabilités trouvées : échec du job + ouverture d'issue
+        #   1                 -> vulnérabilités trouvées : un résultat, pas une erreur. Le
+        #                        job reste vert ; le signal passe par le SARIF (onglet
+        #                        Security) et l'issue ouverte par `open-issue`
         #   128               -> aucun paquet ramassé : traité comme une erreur de configuration
         #   >= 127 (hors 128) -> panne (réseau, binaire…) : échec du job, aucune issue
         run: |
@@ -103,18 +109,14 @@ jobs:
           sarif_file: osv.sarif
           category: osv-scanner
 
-      - name: Fail when vulnerabilities were found
-        if: ${{ steps.scan.outputs.vulns-found == 'true' }}
-        run: |
-          echo "::error::OSV-Scanner a trouvé des vulnérabilités connues — voir le SARIF dans l'onglet Security."
-          exit 1
-
   open-issue:
     name: Ouvrir une issue à la détection
     needs: audit
     # Uniquement sur une vraie détection (exit 1, exposée via l'output `vulns-found`).
     # Les pannes (exit >= 127) et l'erreur de configuration (exit 128) font échouer
     # le job `audit` sans passer par ici — pas d'issue pour du bruit d'infrastructure.
+    # `!cancelled()` : l'issue s'ouvre même si l'upload SARIF a échoué, la détection
+    # reste alors signalée.
     if: ${{ !cancelled() && needs.audit.outputs.vulns-found == 'true' }}
     runs-on: ubuntu-latest
     permissions:
@@ -148,7 +150,7 @@ jobs:
           gh issue create \
             --title "$TITLE" \
             --label dependencies \
-            --body "Le workflow \`audit.yml\` a échoué : OSV-Scanner a trouvé au moins une vulnérabilité connue dans les dépendances (\`pom.xml\` + \`package-lock.json\`).
+            --body "Le workflow \`audit.yml\` a détecté au moins une vulnérabilité connue dans les dépendances (\`pom.xml\` + \`package-lock.json\`).
 
           Détail dans le SARIF (onglet **Security → Code scanning**) et dans les logs du run : $RUN_URL
 

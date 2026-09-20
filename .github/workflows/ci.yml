@@ -291,7 +291,7 @@ jobs:
     name: audit-advisory
     # PR uniquement, non bloquant (`fail-on-vuln: false`) : ne remonte que les
     # nouvelles vulnérabilités introduites par la PR et pousse le SARIF dans
-    # l'onglet Security. Le scan hebdo bloquant vit dans `audit.yml`.
+    # l'onglet Security. Le scan hebdo complet vit dans `audit.yml`.
     if: github.event_name == 'pull_request'
     permissions:
       actions: read

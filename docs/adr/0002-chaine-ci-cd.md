@@ -67,9 +67,11 @@ same hooks locally (not mandatory).
 - **On every PR**: `dependency-review` (block newly introduced high/critical
   advisories and strong-copyleft licences) + `audit-advisory` (OSV, advisory
   only).
-- **Weekly, blocking**: `audit.yml` (cron Monday 06:00 UTC + `workflow_dispatch`)
+- **Weekly**: `audit.yml` (cron Monday 06:00 UTC + `workflow_dispatch`)
   replays OSV-Scanner over `pom.xml` + `package-lock.json`, uploads SARIF, and on
-  a real finding opens a `dependencies` issue deduplicated by title.
+  a real finding opens a `dependencies` issue deduplicated by title. A finding is
+  a result, not a failure: the job stays green. It only fails when the scan itself
+  cannot run (no package picked up, binary or network outage).
 - **Suppression**: time-boxed `[[IgnoredVulns]]` entries in the root
   `osv-scanner.toml`, rationale kept in `CONTRIBUTING.md`. Empty today.
 - **`dependabot.yml`**: three ecosystems — `maven` (`/fhir-mapbuilder-validation`),
@@ -138,8 +140,8 @@ The `main` ruleset itself is ADR 0001's domain.
 - **Keep `test.yml` + `test-java.yml` separate.** Rejected: duplicated setup, no
   shared `permissions:` discipline, and a green-but-empty Java job.
 - **Blocking OSV scan on every PR.** Rejected as too noisy for advisories on
-  pre-existing dependencies; the PR scan is advisory and the weekly scan is the
-  blocking one.
+  pre-existing dependencies; the PR scan is advisory and the weekly scan reports
+  through the Security tab and an issue (see the 2026-09-20 amendment).
 - **Dependabot security updates on.** Rejected: they overlap the version-update
   PRs and the audit workflows, and would open ungrouped one-off PRs.
 - **Broad `GITHUB_TOKEN` (`write`) by default.** Rejected: least privilege per
@@ -191,3 +193,21 @@ Residual exposure — Actions *can* now also approve PRs — is low for this rep
 the `main` ruleset requires zero approvals, there is no `CODEOWNERS`, and
 Dependabot auto-merge uses `gh pr merge --auto`, not an Actions-side approval.
 (Wayfinder map #109, ticket #121.)
+
+### 2026-09-20 — the weekly OSV scan no longer fails the job on findings
+
+`audit.yml` ended with a step that ran `exit 1` whenever OSV-Scanner reported a
+vulnerability (scanner exit code 1). The run then went red even though the
+scan had completed, the SARIF was uploaded and the issue was opened, mixing up
+"the scan found something" with "the pipeline is broken". A red run also
+trains people to ignore the audit workflow.
+
+- A finding (exit 1) is now a **result**: the job stays green, and the signal
+  goes through the SARIF in the Security tab (alerts) and the deduplicated
+  `dependencies` issue.
+- Unchanged: exit 128 (no package picked up, i.e. a configuration error) and
+  exit >= 127 (binary or network outage) still fail the job and open no issue.
+- The job is renamed `osv-scanner (bloquant)` → `osv-scanner`; it was never a
+  required check (scheduled workflow).
+- The "weekly, blocking" wording in this ADR, `README.md`, `ci.yml` and
+  `osv-scanner.toml` is aligned.
