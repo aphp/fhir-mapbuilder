@@ -1,5 +1,13 @@
 # Change Log
 
+## [1.7.3](https://github.com/aphp/fhir-mapbuilder/compare/v1.7.2...v1.7.3) (2026-09-20)
+
+
+### Bug Fixes
+
+* **audit:** stop failing the weekly OSV job on findings ([6b70c59](https://github.com/aphp/fhir-mapbuilder/commit/6b70c5912afb1d911f4ee9656770acab0798d35b))
+* **audit:** stop failing the weekly OSV job on findings ([e80d287](https://github.com/aphp/fhir-mapbuilder/commit/e80d287c5b80d6ff8c2bdf76b17bc7f59176cf33))
+
 ## [1.7.2](https://github.com/aphp/fhir-mapbuilder/compare/v1.7.1...v1.7.2) (2026-09-07)
 
 
