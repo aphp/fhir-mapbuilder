@@ -8,6 +8,13 @@ import fileSystem from "fs";
 import fs from "fs";
 import { maxSatisfying } from "semver";
 
+// The fields of a StructureDefinition snapshot element that the completion tree reads
+type SnapshotElement = {
+    path?: string;
+    max?: string | number;
+    type?: { code: string }[];
+};
+
 export class FhirDefinition {
     // fsWatcher keeps an eye on the workspace for filesystem events
     fsWatcher: FileSystemWatcher;
@@ -43,7 +50,7 @@ export class FhirDefinition {
             // first check if packagePath is valid. if not, give up right away
             try {
                 await workspace.fs.stat(Uri.file(this.cachePath));
-            } catch (err) {
+            } catch {
                 this.logger.appendLine(
                     `${new Date().toLocaleString("fr-FR")} : Couldn't load FHIR definitions from path: ${this.cachePath}`,
                 );
@@ -111,7 +118,7 @@ export class FhirDefinition {
 
                     // try to get package build from ig
                     this.parsedDependencies.push({ packageId: this.igId, version: "dev" });
-                } catch (err) {
+                } catch {
                     // there was a problem parsing the configuration. so, just ignore it, and hope we can find the default FHIR package.
                     this.logger.appendLine(
                         `${new Date().toLocaleString("fr-FR")} : there was a problem parsing the configuration`,
@@ -186,11 +193,10 @@ export class FhirDefinition {
                                         const decodedContents = decoder.decode(rawContents);
                                         const parsedContents = JSON.parse(decodedContents);
                                         const items: EnhancedCompletionItem[] = [];
-                                        let snapshotElements: ElementInfo[];
                                         if (parsedContents.url) {
                                             items.push(new CompletionItem(parsedContents.url));
                                         }
-                                        snapshotElements = this.buildElementsFromSnapshot(
+                                        const snapshotElements = this.buildElementsFromSnapshot(
                                             parsedContents.snapshot.element,
                                         );
                                         items.forEach((item) => {
@@ -201,7 +207,7 @@ export class FhirDefinition {
                                             }
                                             updatedEntities.set(item.label as string, item);
                                         });
-                                    } catch (err) {
+                                    } catch {
                                         // it might be unparseable JSON, or a file may have been removed between
                                         // readDirectory and readFile. either way, it's okay. just keep going.
                                     }
@@ -209,7 +215,7 @@ export class FhirDefinition {
                             }),
                         );
                     }
-                } catch (err) {
+                } catch {
                     console.error(`Could not load definition information for package ${packageKey}`);
                     window.showInformationMessage(`Could not load definition information for package ${packageKey}`);
                     this.logger.appendLine(
@@ -233,7 +239,7 @@ export class FhirDefinition {
         return maxSatisfying(potentialVersions, version) ?? version;
     }
 
-    public buildElementsFromSnapshot(snapshotElements: any[]): ElementInfo[] {
+    public buildElementsFromSnapshot(snapshotElements: SnapshotElement[]): ElementInfo[] {
         const result: ElementInfo[] = [];
         snapshotElements.forEach((element) => {
             const pathParts: string[] = element.path?.split(".").slice(1) ?? [];
@@ -250,7 +256,7 @@ export class FhirDefinition {
                     ) {
                         parent.push({
                             path: pathParts[0].endsWith("[x]") ? pathParts[0].replace("[x]", "") : pathParts[0],
-                            types: element.type?.map((type: any) => type.code) ?? [],
+                            types: element.type?.map((type) => type.code) ?? [],
                             children: [],
                         });
                     }

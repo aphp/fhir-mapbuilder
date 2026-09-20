@@ -1,4 +1,4 @@
-import { execSync, spawnSync, spawn } from "node:child_process";
+import { spawnSync, spawn } from "node:child_process";
 import { existsSync, accessSync, constants } from "fs";
 import { ApiConstants } from "./constants/ApiConstants";
 import { API_TOKEN_ENV_VAR } from "./ApiToken";

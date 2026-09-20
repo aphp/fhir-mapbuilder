@@ -25,36 +25,35 @@ module.exports = tseslint.config(
                 tsconfigRootDir: __dirname,
             },
         },
+        // Politique (ADR 0005) : une règle est `error`, ou `off` avec une raison datée. Jamais `warn`.
+        // Une nouvelle règle arrive en `error` ; si du code existant la viole, la dette est figée dans
+        // `eslint-suppressions.json` (voir CONTRIBUTING.md), pas dans un niveau `warn`.
         rules: {
-            // --- Règles stylistiques : warn uniquement (non bloquantes au build) ---
-
-            // 45 occurrences auto-fixables via `npm run lint:fix`
-            "prefer-const": "warn",
+            "prefer-const": "error",
 
             "@typescript-eslint/naming-convention": [
-                "warn",
+                "error",
                 {
                     selector: "import",
                     format: ["camelCase", "PascalCase"],
                 },
             ],
 
-            // Variables/args inutilisés : préfixer par _ pour les supprimer du rapport
+            // Variables/args inutilisés : les supprimer ; `_` seulement pour un paramètre à conserver
+            // (liste de paramètres d'une interface implémentée)
             "@typescript-eslint/no-unused-vars": [
-                "warn",
+                "error",
                 { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
             ],
 
-            // any : acceptable en phase de migration, à corriger progressivement
-            "@typescript-eslint/no-explicit-any": "warn",
+            "@typescript-eslint/no-explicit-any": "error",
+            "@typescript-eslint/no-unused-expressions": "error",
 
-            // Expression sans effet (FmlValidation.ts:34) — warn pour ne pas bloquer,
-            // mais à corriger : l'expression standalone doit devenir un appel ou être supprimée
-            "@typescript-eslint/no-unused-expressions": "warn",
+            curly: "error",
+            eqeqeq: "error",
+            "no-throw-literal": "error",
 
-            curly: "warn",
-            eqeqeq: "warn",
-            "no-throw-literal": "warn",
+            // off depuis 2026-09-20 : Prettier gère les points-virgules
             semi: "off",
         },
     }
