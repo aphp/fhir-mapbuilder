@@ -138,3 +138,18 @@ reason = "Not exploitable: the vulnerable code path is never reached (…)."
 
 Keep the `reason` specific and the `ignoreUntil` date short. To report a
 vulnerability privately, see [`SECURITY.md`](SECURITY.md).
+
+### Code scanning alerts
+
+Findings surface as **Code scanning alerts** (*Security → Code scanning*), from
+two tools: OSV-Scanner (vulnerable dependencies, category `osv-scanner`) and
+CodeQL (static analysis of the Java, TypeScript and Actions code, GitHub default
+setup). No issue is opened for them.
+
+- An OSV alert closes by itself once the dependency is bumped and the next scan
+  runs; suppress a false positive with `osv-scanner.toml` (above).
+- A CodeQL alert is fixed in code, or dismissed in the Security tab with a
+  reason (*false positive*, *won't fix*, *used in tests*) and a comment. Prefer a
+  fix; a dismissal must say why the code path is safe.
+- To be notified, watch the repository with **Custom → Security alerts** (this is
+  a per-user GitHub setting, not something the repository can configure).

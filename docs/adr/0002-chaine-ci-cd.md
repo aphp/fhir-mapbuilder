@@ -68,10 +68,15 @@ same hooks locally (not mandatory).
   advisories and strong-copyleft licences) + `audit-advisory` (OSV, advisory
   only).
 - **Weekly**: `audit.yml` (cron Monday 06:00 UTC + `workflow_dispatch`)
-  replays OSV-Scanner over `pom.xml` + `package-lock.json`, uploads SARIF, and on
-  a real finding opens a `dependencies` issue deduplicated by title. A finding is
-  a result, not a failure: the job stays green. It only fails when the scan itself
-  cannot run (no package picked up, binary or network outage).
+  replays OSV-Scanner over `pom.xml` + `package-lock.json` and uploads the SARIF:
+  each vulnerability is a Code scanning alert (category `osv-scanner`) that closes
+  by itself once the dependency is fixed. No issue is opened (see the 2026-09-20
+  amendment on Code scanning). A finding is a result, not a failure: the job stays
+  green. It only fails when the scan itself cannot run (no package picked up,
+  binary or network outage).
+- **CodeQL** (GitHub default setup, no workflow file): static analysis of
+  `actions`, `java-kotlin` and `javascript-typescript` on PRs, on pushes to `main`
+  and on a schedule, reported as Code scanning alerts next to the OSV ones.
 - **Suppression**: time-boxed `[[IgnoredVulns]]` entries in the root
   `osv-scanner.toml`, rationale kept in `CONTRIBUTING.md`. Empty today.
 - **`dependabot.yml`**: three ecosystems — `maven` (`/fhir-mapbuilder-validation`),
@@ -98,7 +103,7 @@ elevates explicitly to the minimum it needs. Current holdings:
 |---|---|
 | `ci.yml` | `test-ts`, `test-java`: `+id-token: write`. `audit-advisory`: `actions: read`, `security-events: write`. |
 | `commit-policy.yml` | `pr-title`: `pull-requests: read` (instead of `contents: read`). |
-| `audit.yml` | `audit`: `security-events: write`, `actions: read`. `open-issue`: `issues: write`. |
+| `audit.yml` | `audit`: `security-events: write`, `actions: read`. |
 | `dependabot-auto-merge.yml` | `dependabot`: `contents: write`, `pull-requests: write`. |
 | `release.yml` | `release-please`: `contents/pull-requests/issues: write`. `build`: `contents: write`. `publish-openvsx`: `+id-token: write`. `smoke`: `{}`. |
 
@@ -117,6 +122,7 @@ repository in ticket T9:
 | Private vulnerability reporting | on |
 | Dependabot alerts | on |
 | Dependabot security updates | **off** (version updates + the audit workflows cover this) |
+| Code scanning — CodeQL default setup | on (`actions`, `java-kotlin`, `javascript-typescript`, `default` suite) — see Amendments |
 | `default_workflow_permissions` | `read` |
 | `can_approve_pull_request_reviews` (Actions) | `false` — **reverted to `true`, see Amendments** |
 
@@ -211,3 +217,39 @@ trains people to ignore the audit workflow.
   required check (scheduled workflow).
 - The "weekly, blocking" wording in this ADR, `README.md`, `ci.yml` and
   `osv-scanner.toml` is aligned.
+
+### 2026-09-20 — Code scanning alerts replace the OSV issue; CodeQL enabled
+
+`audit.yml` uploaded the OSV SARIF **and** opened a `dependencies` issue,
+deduplicated by title, on every detection. The two signals disagreed in time: on
+2026-09-20 the two `CVE-2026-84375` alerts (`vscode-extension/package-lock.json`)
+closed by themselves once a bump landed, while issue #176, opened for the same
+detection, stayed open because nothing closes it.
+
+- **OSV reports through Code scanning only.** The `open-issue` job, the
+  `vulns-found` output and the `issues: write` permission are removed from
+  `audit.yml` (least privilege: the file now holds only `security-events: write`
+  and `actions: read`). An alert is opened by the scan, closed by the next scan
+  once the dependency is fixed, and can be dismissed with a reason.
+  `osv-scanner.toml` stays the suppression mechanism for false positives. The
+  earlier amendment of the same date that mentions the deduplicated issue is
+  superseded on that point only.
+- **CodeQL default setup enabled** (repository setting, no workflow file; done
+  with `PATCH /repos/aphp/fhir-mapbuilder/code-scanning/default-setup`):
+  languages `actions`, `java-kotlin`, `javascript-typescript`, `default` query
+  suite, `remote` threat model, run on PRs, on pushes to `main` and on a schedule.
+  It complements OSV (static analysis of our code, where OSV only looks at
+  dependencies), is free on a public repository, and its `actions` analysis reads
+  the workflows this ADR is about. It is the approach of the reference repo.
+- **First scan** on `main`: `actions` 0, `javascript-typescript` 0,
+  `java-kotlin` 11 (8 `java/path-injection`, high, in `FileUtils` and
+  `MatchBoxService`; 3 `java/error-message-exposure`, medium, in
+  `MatchBoxController`). These are findings on the validation REST API to triage
+  and are **not** fixed by this change.
+
+**Not done, on purpose:** a `code_scanning` rule on the `main` ruleset (a PR
+introducing an alert would be blocked). It overlaps `dependency-review`, which
+already blocks newly introduced high/critical advisories, and an OSV scan that
+blocks PRs was rejected above as too noisy. It can be added later per tool.
+Notifications are a per-user GitHub setting (*Watch → Custom → Security
+alerts*), not something the repository can configure; `CONTRIBUTING.md` says so.
