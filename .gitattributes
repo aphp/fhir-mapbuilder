@@ -1,0 +1,3 @@
+# Les scripts shell doivent rester en LF : un checkout Windows avec core.autocrlf=true
+# les convertirait en CRLF et casserait le shebang (voir .github/scripts/smoke-jar.sh).
+*.sh text eol=lf

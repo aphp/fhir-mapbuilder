@@ -53,7 +53,7 @@ Six attributes, ranked by how badly a silent failure would mislead a mapping aut
 | 1 | Result fidelity | What the extension shows (validation, errors, transformation) is what Matchbox produced, without loss or distortion | Regression tests on reference FML cases; escaped "wrong result" bugs | measured |
 | 2 | Local surface security | What the local validation server exposes, and to whom | Open code scanning alerts (CodeQL + OSV); published advisories | measured |
 | 3 | Java process lifecycle | Missing Java, busy port, crash and restart are handled | Release `smoke` job; lifecycle issues | measured |
-| 4 | OS parity | Same behaviour on Windows, macOS and Linux | Smoke test on `windows-latest` and `macos-latest` | **unmeasured**: CI runs on `ubuntu-latest` only |
+| 4 | OS parity | Same behaviour on Windows, macOS and Linux | Smoke test on `windows-latest` and `macos-latest` | measured since 2026-09-20: the `os-smoke` job of `ci.yml` (advisory, not a required check yet) |
 | 5 | Up-to-date documentation | ADRs, README and CONTRIBUTING contain no stale claim | Monthly checkpoint | measured |
 | 6 | Code readability and navigability, for the maintainer and for agents | | ESLint warning count; churn × complexity hotspots | measured |
 
@@ -174,7 +174,12 @@ of this record is redrawn.
 - Goodhart: few gates, and coverage read next to the escaped-bug count, so that a
   rising number cannot hide a falling result fidelity. The 90 % ceiling is there on
   purpose.
-- OS parity is listed but unmeasured, on purpose: the list says what is not covered.
+- OS parity was listed but unmeasured, on purpose, so that the list says what is not
+  covered. Since 2026-09-20 the `os-smoke` job measures part of it: the validation jar
+  (launched from a directory whose name has a space and an accent) and the extension
+  unit tests, on `windows-latest` and `macos-latest`. Still uncovered: the VS Code
+  integration suite on those two systems, and the real `shell: true` launch of the
+  process by the extension (the jar is started by a script there, not by the extension).
 
 ## Alternatives considered
 
@@ -211,6 +216,6 @@ Not executed by this record.
    template, a bug issue template, `CODE_OF_CONDUCT`, the `quality`, `flaky` and
    `wrong-result` labels, and the three Definition of Done lines in the PR template.
 4. **OS parity** — a smoke matrix on `windows-latest` and `macos-latest` to give
-   attribute 4 a signal; not yet specified.
+   attribute 4 a signal. Specified in #215 and done on 2026-09-20 (`os-smoke` job).
 
 CodeQL needs no spec: it is a repository setting.
