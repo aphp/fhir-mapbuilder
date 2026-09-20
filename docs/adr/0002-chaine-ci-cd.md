@@ -127,6 +127,7 @@ repository in ticket T9:
 | Dependabot alerts | on |
 | Dependabot security updates | **off** (version updates + the audit workflows cover this) |
 | Code scanning — CodeQL default setup | on (`actions`, `java-kotlin`, `javascript-typescript`, `default` suite) — see Amendments |
+| Dependency graph — Automatic dependency submission | on, for Maven — see Amendments |
 | `default_workflow_permissions` | `read` |
 | `can_approve_pull_request_reviews` (Actions) | `false` — **reverted to `true`, see Amendments** |
 
@@ -312,3 +313,34 @@ The Actions list of this repository is aligned on the sibling repositories
 
 Unchanged: the trigger (pull requests to `main`), the gates, the tag pin of the
 action, and the rest of §"Dependency hygiene".
+
+### 2026-09-20 — Automatic dependency submission enabled (Maven)
+
+The dependency graph of the repository was shallow on the Java side. GitHub reads
+`pom.xml` statically, so it saw **11 Maven packages** (the direct dependencies and
+the plugins), against **107 artifacts** in the resolved runtime tree of the
+validation module, among them HAPI FHIR (`ca.uhn.hapi.fhir:*`) and
+`org.hl7.fhir.*`, pulled in through Matchbox. On the npm side it was complete (525
+packages, from `package-lock.json`). Dependabot alerts and `dependency-review`
+both rely on that graph, so a vulnerability in a transitive Java dependency could
+not be flagged.
+
+- **What.** "Automatic dependency submission" is enabled in the repository settings
+  (Settings, Advanced Security, Dependency graph). Like the CodeQL default setup
+  above, it is a repository setting with no workflow file: GitHub runs a dynamic
+  workflow on each push to `main` that resolves the Maven tree and submits it to
+  the dependency graph.
+- **Effect to expect.** The number of Dependabot alerts may rise at once: those
+  would be real advisories on transitive dependencies that were already present but
+  invisible, not a regression of the code. The "open alerts" reading of the
+  quality dashboard reads them as such.
+- **Risk and fallback.** The module requires Java 21 (`maven.compiler.release`),
+  and the Java version used by the dynamic workflow is not under our control. If
+  its runs fail for that reason, replace the setting by a versioned workflow that
+  sets up Java 21 with `actions/setup-java` and submits the graph with the
+  official Maven dependency submission action (job permission `contents: write`,
+  on push to `main` only).
+
+The setting itself cannot be read from the repository: the dynamic workflow appears
+in the Actions list after its first run, and the Maven package count of the graph
+is the signal that it works.
