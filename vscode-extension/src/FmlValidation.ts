@@ -28,9 +28,11 @@ export class FmlValidation {
     public async loadPackage() {
         await executeWithProgress("Loading new package in progress...", async () => {
             const message = await this.api.callResetAndLoadEngine();
-            message
-                ? vscode.window.showInformationMessage(message)
-                : vscode.window.showErrorMessage("Failed to load package.");
+            if (message) {
+                vscode.window.showInformationMessage(message);
+            } else {
+                vscode.window.showErrorMessage("Failed to load package.");
+            }
         });
     }
 

@@ -163,7 +163,7 @@ suite("Extension Commands Test Suite", () => {
     });
 
     test("parseFmlFilesFromPath should return 0 if path is not a string", async () => {
-        const result = await mapBuilderWatcherInstance.parseFmlFilesFromPath({} as any);
+        const result = await mapBuilderWatcherInstance.parseFmlFilesFromPath({} as unknown as string);
         assert.strictEqual(result, 0, "Expected 0 when input path is not a string");
     });
 

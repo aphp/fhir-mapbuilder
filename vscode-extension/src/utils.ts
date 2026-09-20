@@ -70,7 +70,7 @@ export async function extractTGZ(logger: OutputChannel, filePath: string, output
                 logger.appendLine(`${new Date().toLocaleString("fr-FR")} : End extractTGZ for ${filePath}`);
                 resolve();
             })
-            .on("error", (error: any) => {
+            .on("error", (error: Error) => {
                 console.error("Error during extraction:", error);
                 logger.appendLine(
                     `${new Date().toLocaleString("fr-FR")} : Error during extraction of ${filePath} : ${error}`,
@@ -130,14 +130,13 @@ export function retrieveSourceAndTargetFromGroupLine(logger: OutputChannel, grou
     const regex = /\((.*?)\)/;
     const match = groupLine.match(regex);
     let parenthesisString = "";
-    let splitParenthesisString: any[];
     const returnLines: string[] = [];
 
     if (match && match[1]) {
         parenthesisString = match[1];
     }
 
-    splitParenthesisString = parenthesisString.split(",");
+    const splitParenthesisString = parenthesisString.split(",");
 
     splitParenthesisString.forEach((line) => {
         returnLines.push(line);
@@ -149,7 +148,7 @@ export function retrieveSourceAndTargetFromGroupLine(logger: OutputChannel, grou
 
 export function retrieveNameAndAlias(logger: OutputChannel, line: string): [string, string, string] {
     logger.appendLine(`${new Date().toLocaleString("fr-FR")} : Start retrieveNameAndAlias`);
-    let splitSrcLine: any[];
+    let splitSrcLine: string[];
     let element: string;
     if (line.startsWith("source")) {
         element = "source";
@@ -193,11 +192,8 @@ export function retrieveUrlAliasAs(logger: OutputChannel, line: string): [string
 export function retrieveType(logger: OutputChannel, url: string): string {
     logger.appendLine(`${new Date().toLocaleString("fr-FR")} : Start retrieveType`);
 
-    let splitUrl: any[];
-    let type: string;
-
-    splitUrl = url.split("/");
-    type = splitUrl[splitUrl.length - 1];
+    const splitUrl = url.split("/");
+    const type = splitUrl[splitUrl.length - 1];
     logger.appendLine(`${new Date().toLocaleString("fr-FR")} : End retrieveType`);
 
     return type;

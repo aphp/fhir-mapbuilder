@@ -8,6 +8,13 @@ import fileSystem from "fs";
 import fs from "fs";
 import { maxSatisfying } from "semver";
 
+// The fields of a StructureDefinition snapshot element that the completion tree reads
+type SnapshotElement = {
+    path?: string;
+    max?: string | number;
+    type?: { code: string }[];
+};
+
 export class FhirDefinition {
     // fsWatcher keeps an eye on the workspace for filesystem events
     fsWatcher: FileSystemWatcher;
@@ -186,11 +193,10 @@ export class FhirDefinition {
                                         const decodedContents = decoder.decode(rawContents);
                                         const parsedContents = JSON.parse(decodedContents);
                                         const items: EnhancedCompletionItem[] = [];
-                                        let snapshotElements: ElementInfo[];
                                         if (parsedContents.url) {
                                             items.push(new CompletionItem(parsedContents.url));
                                         }
-                                        snapshotElements = this.buildElementsFromSnapshot(
+                                        const snapshotElements = this.buildElementsFromSnapshot(
                                             parsedContents.snapshot.element,
                                         );
                                         items.forEach((item) => {
@@ -233,7 +239,7 @@ export class FhirDefinition {
         return maxSatisfying(potentialVersions, version) ?? version;
     }
 
-    public buildElementsFromSnapshot(snapshotElements: any[]): ElementInfo[] {
+    public buildElementsFromSnapshot(snapshotElements: SnapshotElement[]): ElementInfo[] {
         const result: ElementInfo[] = [];
         snapshotElements.forEach((element) => {
             const pathParts: string[] = element.path?.split(".").slice(1) ?? [];
@@ -250,7 +256,7 @@ export class FhirDefinition {
                     ) {
                         parent.push({
                             path: pathParts[0].endsWith("[x]") ? pathParts[0].replace("[x]", "") : pathParts[0],
-                            types: element.type?.map((type: any) => type.code) ?? [],
+                            types: element.type?.map((type) => type.code) ?? [],
                             children: [],
                         });
                     }
