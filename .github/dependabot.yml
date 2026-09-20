@@ -2,10 +2,24 @@
 # npm (extension VS Code) et GitHub Actions. Voir ADR 0002 (chaîne CI/CD) et le
 # spec #80.
 #
-# Convention commune maven/npm : PR hebdomadaires le lundi, préfixe de commit
-# `build` (aligné sur le `type-enum` de commitlint — cf. commitlint.config.mjs,
-# ADR 0001), label `dependencies`, assignées à davidouagne, fenêtre de
-# refroidissement de 3 jours avant de proposer une version fraîchement publiée.
+# Convention commune maven/npm : PR hebdomadaires le lundi, label
+# `dependencies`, assignées à davidouagne, fenêtre de refroidissement de 3 jours
+# avant de proposer une version fraîchement publiée.
+#
+# Préfixe de commit (aligné sur le `type-enum` de commitlint — cf.
+# commitlint.config.mjs, ADR 0001) : `fix` pour les dépendances de PRODUCTION
+# maven et npm, `build` pour les dépendances de dev et GitHub Actions.
+# release-please n'ouvre une PR de release que si le changelog généré n'est pas
+# vide, et masque `build` : un bump de dépendance livrée dans le `.vsix` (le jar
+# Matchbox en tête, les dépendances runtime de l'extension) doit donc être un
+# `fix(deps)` pour produire une release ; un bump d'outillage (spotless, mocha,
+# actions...) n'en produit aucune. Le préfixe se règle par écosystème, pas par
+# dépendance : une dépendance rangée en prod par erreur déclencherait de fausses
+# releases (cf. typescript-eslint, déplacé en devDependencies). ADR 0003
+# §Amendments (2026-09-20).
+#
+# Matchbox est exclu du groupe prod-minor-patch : sa PR reste individuelle, son
+# titre nomme la dépendance et sa ligne de changelog aussi.
 # Deux groupes, tous deux bornés à minor/patch : dev-dependencies d'un côté,
 # prod-dependencies de l'autre. Les major restent hors groupe, en PR
 # individuelles instruites à la main — un major ne doit jamais voyager
@@ -24,7 +38,7 @@ updates:
     cooldown:
       default-days: 3
     commit-message:
-      prefix: "build"
+      prefix: "fix"
       prefix-development: "build"
       include: "scope"
     labels:
@@ -44,6 +58,8 @@ updates:
         update-types:
           - "minor"
           - "patch"
+        exclude-patterns:
+          - "health.matchbox:*"
     ignore:
       # Spring Boot 4 migration deferred (wayfinder map #48, decision ticket #50):
       # small effort, no blocker found, just not scheduled yet. Still take
@@ -60,7 +76,7 @@ updates:
     cooldown:
       default-days: 3
     commit-message:
-      prefix: "build"
+      prefix: "fix"
       prefix-development: "build"
       include: "scope"
     labels:

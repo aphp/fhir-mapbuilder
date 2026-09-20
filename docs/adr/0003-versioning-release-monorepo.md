@@ -244,3 +244,49 @@ to `v1.7.0`, a `val`-only `fix:` bumps the single version, all four extra-file
 updaters resolve). The old **Consequences** bullet "versions can no longer
 drift — `linked-versions` moves them together" now holds for a different reason:
 there is only one version.
+
+### 2026-09-20 — shipped-dependency bumps produce a release
+
+A Matchbox bump ships in the `.vsix` (the validation jar embeds
+`matchbox-engine`) but never produced a release: Dependabot prefixed every bump
+`build(deps)`, release-please hides `build` by default, and it opens a release
+PR **only when the generated release notes are non-empty**
+(`No user facing commits found … skipping`, release-please 17.11.2,
+`strategies/base.js`). Visibility in the changelog is what triggers a release,
+not the commit type. Checked with the real library on fake Dependabot commits:
+`build(deps)` and `build(deps-dev)` → skipped; `fix(deps)` → release PR; with the
+`build` section made visible, `build(deps-dev): bump spotless` opens one too.
+
+- **Mechanism:** `dependabot.yml` sets `prefix: "fix"` for **production**
+  dependencies (Maven and npm) and keeps `prefix-development: "build"`; GitHub
+  Actions stay `build`. A shipped-dependency bump is a `fix(deps)` and opens a
+  patch release PR; tooling opens none. The release PR stays behind a manual
+  merge, so nothing is published automatically; auto-merged patch bumps only
+  update it.
+- **Scope:** everything that ends up in the `.vsix` — the Maven production
+  dependencies (Matchbox, OpenTelemetry, Spring Boot, `commons-io`, …) and the
+  extension's runtime dependencies (`axios`, `semver`, `tar`, `yaml`, bundled
+  into `dist/extension.js` by esbuild). The prefix is per ecosystem, not per
+  dependency, so "Matchbox only" is not expressible.
+- **Matchbox isolated:** excluded from the Maven `prod-minor-patch` group, so its
+  PR is always individual (`bump health.matchbox:matchbox-engine from X to Y`)
+  and its changelog line names it. It stays a production minor, never
+  auto-merged.
+- **Convention:** a manual commit that changes a shipped dependency (a CVE pin
+  such as the Tomcat one) is also a `fix(deps)` (`CONTRIBUTING.md`).
+- **`typescript-eslint` moved to `devDependencies`.** It was listed under
+  `dependencies` but is only used by `eslint.config.js`, never imported by
+  `src`. With the `fix` prefix its frequent bumps would have opened false
+  releases. Lockfile: only `"dev": true` flags and the root dependency block
+  change.
+
+**Rejected: making the `build` changelog section visible** (the reference repo's
+ADR 0004). It would open a release PR for every tooling bump (spotless, spotbugs,
+mocha, Actions) and, because merge commits carry the PR title as their body and
+release-please parses both the merge commit and the branch commit, every
+Dependabot line would appear twice in the changelog.
+
+**Not verifiable locally:** a `dependabot.yml` cannot be replayed. Confirmation
+comes from the next Monday Dependabot run — production bumps titled
+`fix(deps): …`, development and Actions bumps still `build(…)`, a Matchbox bump
+as its own PR, and a `fix(deps)` merge updating the release PR.
