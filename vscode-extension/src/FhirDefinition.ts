@@ -43,7 +43,7 @@ export class FhirDefinition {
             // first check if packagePath is valid. if not, give up right away
             try {
                 await workspace.fs.stat(Uri.file(this.cachePath));
-            } catch (err) {
+            } catch {
                 this.logger.appendLine(
                     `${new Date().toLocaleString("fr-FR")} : Couldn't load FHIR definitions from path: ${this.cachePath}`,
                 );
@@ -111,7 +111,7 @@ export class FhirDefinition {
 
                     // try to get package build from ig
                     this.parsedDependencies.push({ packageId: this.igId, version: "dev" });
-                } catch (err) {
+                } catch {
                     // there was a problem parsing the configuration. so, just ignore it, and hope we can find the default FHIR package.
                     this.logger.appendLine(
                         `${new Date().toLocaleString("fr-FR")} : there was a problem parsing the configuration`,
@@ -201,7 +201,7 @@ export class FhirDefinition {
                                             }
                                             updatedEntities.set(item.label as string, item);
                                         });
-                                    } catch (err) {
+                                    } catch {
                                         // it might be unparseable JSON, or a file may have been removed between
                                         // readDirectory and readFile. either way, it's okay. just keep going.
                                     }
@@ -209,7 +209,7 @@ export class FhirDefinition {
                             }),
                         );
                     }
-                } catch (err) {
+                } catch {
                     console.error(`Could not load definition information for package ${packageKey}`);
                     window.showInformationMessage(`Could not load definition information for package ${packageKey}`);
                     this.logger.appendLine(

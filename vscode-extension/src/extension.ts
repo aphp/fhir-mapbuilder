@@ -35,7 +35,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<{
         addWatcher(detailsChannel, api);
 
         return { completionProviderInstance };
-    } catch (err) {
+    } catch {
         return { completionProviderInstance: null };
     }
 }

@@ -9,7 +9,7 @@ import vscode, {
 } from "vscode";
 import fs from "fs";
 import { MapBuilderValidationApi } from "./MapBuilderValidationApi";
-import { executeWithProgress, getDataFile, isEmptyOrBlank, logData } from "./utils";
+import { executeWithProgress, logData } from "./utils";
 import { UiConstants } from "./constants/UiConstants";
 import path from "path";
 

@@ -33,7 +33,7 @@ export function downloadFHIRPackage(
                             download = true;
                         }
                     },
-                    (error) => {
+                    () => {
                         logger.appendLine(
                             `${new Date().toLocaleString("fr-FR")} : Error downloading package ${packageName}#${version} from ${url}`,
                         );
@@ -238,7 +238,7 @@ export function testPath(pathToTest: string): boolean {
     try {
         fs.accessSync(path.resolve(pathToTest));
         return true;
-    } catch (error) {
+    } catch {
         return false;
     }
 }

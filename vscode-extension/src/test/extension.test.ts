@@ -84,7 +84,7 @@ suite("Extension Commands Test Suite", () => {
         try {
             await vscode.commands.executeCommand(command);
             assert.ok(true, `Command ${command} executed successfully`);
-        } catch (error) {
+        } catch {
             assert.fail(`Command ${command} execution failed`);
         }
     });

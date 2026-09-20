@@ -213,7 +213,7 @@ export class MapBuilderValidationApi {
                     logData(`Java application is ready...`, this.mapBuilderValidationLogger);
                     return; // App is ready
                 }
-            } catch (error) {
+            } catch {
                 // Log errors but continue polling
                 logData(
                     `Waiting for java application. Attempt ${retries + 1}/${maxRetries} failed.`,

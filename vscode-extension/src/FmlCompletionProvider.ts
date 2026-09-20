@@ -244,7 +244,7 @@ export class FmlCompletionProvider implements CompletionItemProvider {
         this.logger.appendLine(`${new Date().toLocaleString("fr-FR")} : End handleDeletedFile`);
     }
 
-    resolveCompletionItem?(item: CompletionItem, token: CancellationToken): ProviderResult<CompletionItem> {
+    resolveCompletionItem?(_item: CompletionItem, _token: CancellationToken): ProviderResult<CompletionItem> {
         throw new Error("Method not implemented.");
     }
 }
