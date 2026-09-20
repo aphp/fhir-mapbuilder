@@ -103,6 +103,17 @@ This applies to all Java processes run by your user account (not just this exten
 VS Code (or a re-login) to take effect. Remove it with the same command using an empty string once
 `FhirMapBuilder.javaVmArgs` covers your needs.
 
+**"The validation server on port … was started with a different API token"**: the extension reuses whatever server
+already answers on `FhirMapBuilder.port`, but that server rejects the extension's API token, so every validation
+fails. It happens when an older server is still running after an extension update, or when a jar was started by hand.
+The extension cannot stop that server itself (stopping it requires the token). Either:
+
+* stop the `java` process that listens on that port (Task Manager, or `netstat -ano` to find its process id), then
+  reload the VS Code window, so the extension starts a server with its own token;
+* or set `FhirMapBuilder.port` to a free port and reload the window.
+
+The "Show log" button of the message opens the "FHIR MapBuilder Service" output with the same steps.
+
 ## Templates
 
 To use a template, you need to apply it. There are two possible methods.

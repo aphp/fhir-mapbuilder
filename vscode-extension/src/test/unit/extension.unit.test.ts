@@ -11,6 +11,7 @@ import type * as ChildProcessNS from "node:child_process";
 import type { ExtensionContext } from "vscode";
 import { MapBuilderJavaProcess } from "../../MapBuilderJavaProcess";
 import { activate, deactivate } from "../../extension";
+import { window } from "./vscode.mock";
 import { standardTeardown } from "./_helpers";
 
 // Raw require, as in MapBuilderJavaProcess.unit.test.ts: sinon cannot stub the `import * as` copy.
@@ -101,5 +102,52 @@ suite("extension API token wiring", () => {
 
         assert.strictEqual(spawn.called, false);
         assert.deepStrictEqual(shutdownCall()?.args[1], { headers: { "X-MapBuilder-Token": "shared-token" } });
+    });
+
+    suite("a running server started with another token (#203)", () => {
+        let showError: sinon.SinonStub;
+
+        setup(() => {
+            showError = sinon.stub(window, "showErrorMessage").resolves(undefined);
+        });
+
+        function serverRejectsToken() {
+            get.callsFake((url: string) =>
+                Promise.resolve({ status: /health/.test(url) ? 200 : /matchbox\/parse/.test(url) ? 401 : 200 }),
+            );
+        }
+
+        test("tells the user once and does not start a second server", async () => {
+            serverRejectsToken();
+            const { context } = contextWithSecrets("shared-token");
+
+            await activate(context);
+
+            assert.strictEqual(showError.callCount, 1);
+            assert.match(showError.firstCall.args[0] as string, /different API token/);
+            assert.strictEqual(spawn.called, false);
+        });
+
+        test("stays silent when the running server accepts the token", async () => {
+            serverIs(true);
+            const { context } = contextWithSecrets("shared-token");
+
+            await activate(context);
+
+            assert.strictEqual(showError.called, false);
+        });
+
+        test("does not probe a server the extension starts itself", async () => {
+            serverIs(false);
+            const { context } = contextWithSecrets("shared-token");
+
+            await activate(context);
+
+            assert.strictEqual(showError.called, false);
+            assert.strictEqual(
+                get.getCalls().some((c) => /matchbox\/parse/.test(c.args[0] as string)),
+                false,
+            );
+        });
     });
 });

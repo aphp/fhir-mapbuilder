@@ -59,6 +59,19 @@ class ApiTokenAuthenticationTest {
                 .andExpect(status().isOk());
     }
 
+    /**
+     * The extension probes the token with a parameterless call: the token check must answer before parameter
+     * binding, so 401 means a rejected token and anything else means an accepted one.
+     */
+    @Test
+    void tokenProbe_isRejectedBeforeParameterBinding() throws Exception {
+        mockMvc.perform(get("/api/matchbox/parse")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/matchbox/parse").header(HEADER, "not-the-token"))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/matchbox/parse").header(HEADER, "secret-token"))
+                .andExpect(status().isBadRequest());
+    }
+
     @Test
     void shutdown_returns401_whenTokenIsMissing() throws Exception {
         mockMvc.perform(get("/shutdown")).andExpect(status().isUnauthorized());
