@@ -290,3 +290,61 @@ Dependabot line would appear twice in the changelog.
 comes from the next Monday Dependabot run — production bumps titled
 `fix(deps): …`, development and Actions bumps still `build(…)`, a Matchbox bump
 as its own PR, and a `fix(deps)` merge updating the release PR.
+
+### 2026-09-20 — manual replay by tag, version guard, job timeouts
+
+Aligned on the reference repo `davidouagne/datahub-yaml-source`, which already
+replays a failed release against an existing tag. Three weaknesses of
+`release.yml` here:
+
+1. **The recovery path published the wrong code.** `workflow_dispatch` with
+   `dry_run: false` checked out `tag_name || github.sha`, i.e. the `HEAD` of
+   `main` when there was no tag. A recovery after a partial failure would have
+   published unreleased code under the version of the last tag.
+2. **Nothing checked that what is built matches the tag** before something left
+   for a registry.
+3. **No `timeout-minutes`**: a hung build or registry call ran until the 6 h
+   default.
+
+Changes to `release.yml`:
+
+- **`publish_tag` input** (`vX.Y.Z`, validated, must exist). Without it the
+  dispatch is a rehearsal on `HEAD` and **never publishes**: `dry_run: false`
+  without a tag is refused outright, and the two `publish-*` jobs also require
+  `publish_tag != ''`. With it, `build` checks out that tag. `dry_run` stays
+  `true` by default, so a replay is a rehearsal unless `dry_run: false`. The
+  `release-please` job stays skipped on dispatch: nothing touches the release PR,
+  the tag or the Release.
+- **Full replay** (`publish_tag` + `dry_run: false`): the `.vsix` and jar are
+  re-uploaded to the existing GitHub Release (`--clobber`, idempotent), both
+  registries are published, then `smoke` runs. On `dry_run: true` there is no
+  Release upload, no publication and no `smoke`. `smoke` now runs when both
+  `publish-*` jobs succeeded (`!cancelled()`, because `release-please` is skipped
+  on dispatch and the implicit `success()` would skip it).
+- **Version/tag guard**, blocking, in `build` right after checkout and before any
+  packaging, whenever a tag is present (real release or replay; skipped on a
+  tag-less rehearsal): `vscode-extension/package.json` `version` and
+  `fhir-mapbuilder-validation/pom.xml` `/project/version` must equal the tag, and
+  after `vsce package` the file must be named `<name>-<tag version>.vsix`. The
+  error names the offending file. Both are bumped by release-please
+  `extra-files`, so a mismatch means a tag on an inconsistent commit.
+- **Timeouts**, sized on the measured durations of release v1.7.2 (run
+  `34134788235`): `release-please` 5 min (12 s), `build` 15 (124 s),
+  `publish-marketplace` 10 (64 s), `publish-openvsx` 10 (26 s), `smoke` 20
+  (507 s, its Open VSX loop waits up to 10 min). `smoke` stays
+  `continue-on-error`.
+
+The dispatch inputs and the three guard steps were exercised locally by running
+the scripts extracted from `release.yml` against fabricated files (14 cases:
+valid and refused combinations, injection attempt, mismatching `package.json`,
+`pom.xml` and `.vsix` name); `actionlint` reports nothing beyond three
+pre-existing `SC2035` info-level notes. The rehearsal and replay runs are
+`dry_run: true` dispatches on the change's branch.
+
+**Not adopted from the reference:** OIDC trusted publishing. The Marketplace has
+none, and Open VSX has no self-serve trusted-publisher setup with `ovsx` (see the
+PAT debt above). Requiring the replay tag to be an ancestor of `main` was also
+left out: the reference does not either, and pushing a tag already needs write
+access. The reference's visible `build`/`chore`/`ci` changelog sections were
+rejected for another reason — see the amendment above on shipped-dependency
+bumps.
