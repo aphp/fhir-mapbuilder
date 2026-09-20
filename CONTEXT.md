@@ -19,3 +19,7 @@ _Avoid_: Stale server, foreign server
 **Output folder**:
 The per-run folder that receives the parameters log, the transformation result and the quality report.
 _Avoid_: Results directory, generated folder
+
+**Wrong result**:
+The extension reports a validation verdict or a transformation result that differs from what the engine should give for the same StructureMap and inputs: a false success, a false error or a wrong output, whatever the root cause (ours or Matchbox's). Crashes, hangs and UI problems are ordinary bugs.
+_Avoid_: Incorrect output, false positive
