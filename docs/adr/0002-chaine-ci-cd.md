@@ -54,13 +54,16 @@ same hooks locally (not mandatory).
 - Uploads per PR: two under flag `ts` (out-of-host unit layer +
   `@vscode/test-cli` integration) and one under flag `java`, all over
   **OIDC — no token**. Codecov merges the two `ts` reports by union.
-- `project` status `auto` (0 % threshold); `patch` status target **80 %**.
+- `project` status `auto` (**1 %** threshold, 0 % until 2026-09-20; advisory, not
+  a required check); `patch` status target **80 %**.
 - `component_management`: a `ts` component (`paths: vscode-extension/src/**`)
-  and a `java` component, **each carrying a `project` 80 % status** (exact
-  mirrors); both also inherit the repo `patch` 80 %. The `java` gate landed
-  with socle #116, the `ts` gate with socle #136 (see Amendments).
-- `ignore`: Spring entrypoint, `model/**`, `config/**`, `test/**` (the last
-  also covers `vscode-extension/src/test/**`).
+  and a `java` component, **each carrying a `project` 90 % status** (80 % until
+  2026-09-20; exact mirrors); both also inherit the repo `patch` 80 %. The
+  `java` gate landed with socle #116, the `ts` gate with socle #136 (see
+  Amendments).
+- `ignore`: Spring entrypoint, `model/**`, `config/MatchboxEngineConfig.java`
+  (was `config/**` until 2026-09-20), `test/**` (the last also covers
+  `vscode-extension/src/test/**`).
 
 ### Dependency hygiene
 
@@ -257,3 +260,29 @@ alerts*), not something the repository can configure; `CONTRIBUTING.md` says so.
 The decision of record for CodeQL is now the "CodeQL" section of ADR 0005
 (advisory, suite `default`, re-evaluation on 2026-11-30). This amendment stays
 as history.
+
+### 2026-09-20 — Codecov component floors go from 80 % to 90 %
+
+ADR 0005 (section "Coverage") hardens the coverage gate. The floors had stayed at
+80 % while Codecov measured `ts` 96.16 %, `java` 95.42 % and 96.09 % for the
+repository, about 15 points above. §"Coverage gate" above is updated in place;
+what changed in `codecov.yml`:
+
+- **Component floors.** The `project` statuses of the `ts` and `java` components
+  go from 80 % to **90 %**. This is the ceiling: no further steps. The status
+  names do not change, so the required checks of the `main` ruleset
+  (`codecov/project/ts`, `codecov/project/java`, `codecov/patch`) keep matching.
+- **Repo `project` status.** It stays `auto`, and its threshold goes from 0 % to
+  **1 %** (a PR cannot lower the total by more than one point), with no numeric
+  target. It is **advisory**: `codecov/project` is not among the required checks
+  of the `main` ruleset, so a breach shows a red check without blocking the merge
+  until it is added to the ruleset (a separate change).
+- **Ignore.** `**/config/**` is replaced by `**/config/MatchboxEngineConfig.java`.
+  The broad pattern hid `ApiTokenFilter`, the authentication code of the
+  validation server, although its tests cover it fully. `MatchboxEngineConfig`
+  stays out: it is Spring wiring (the engine bean, the port customizer) with no
+  logic of its own.
+
+Unchanged: repo `patch` 80 % (both stacks), the other ignores, the tokenless OIDC
+uploads. After this change a floor is lowered only through a motivated, dated
+exception decided at the monthly review (ADR 0005).
