@@ -3,6 +3,9 @@
 Thanks for taking the time to contribute! This document covers what you need to
 know before opening a pull request. The rationale behind the commit rules lives
 in [`docs/adr/0001-politique-de-commits.md`](docs/adr/0001-politique-de-commits.md).
+How quality is steered (coverage floors, the lint policy, the monthly review and
+the Definition of Done of the PR template) is recorded in
+[`docs/adr/0005-pilotage-qualite-code.md`](docs/adr/0005-pilotage-qualite-code.md).
 
 ## Build and run
 
