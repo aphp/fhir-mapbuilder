@@ -47,4 +47,7 @@ folder, none of which sits under a single root.
   bundled). Standalone `curl` usage now needs the header.
 - Path checks are not a second line of defence; the token is the boundary.
 - A server left running with a different token answers `401` to every call
-  except `/health`; restarting it fixes that.
+  except `/health`; restarting it fixes that. The extension detects this
+  (a *mismatched server*, #203) and tells the user once, but cannot stop that
+  server itself because `/shutdown` needs the token: the user stops it or
+  changes the port.

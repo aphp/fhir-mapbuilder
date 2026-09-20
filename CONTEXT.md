@@ -12,6 +12,10 @@ _Avoid_: Backend, API server, Matchbox
 The secret that proves a request to the validation server comes from whoever started it: the extension, or the operator of a standalone jar.
 _Avoid_: API key, password, session
 
+**Mismatched server**:
+A validation server that answers `/health` but rejects the extension's API token, because whoever started it used a different one.
+_Avoid_: Stale server, foreign server
+
 **Output folder**:
 The per-run folder that receives the parameters log, the transformation result and the quality report.
 _Avoid_: Results directory, generated folder
