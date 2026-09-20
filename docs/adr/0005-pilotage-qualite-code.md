@@ -89,7 +89,8 @@ offline operation (false today, FHIR packages are downloaded at runtime).
 - A floor is lowered only by a motivated, dated exception decided at the monthly
   review, with a date to return to the level.
 - The repo-level `project` status stays `auto`, with `threshold: 1%` (a PR cannot
-  lower the total by more than one point) and no numeric target.
+  lower the total by more than one point) and no numeric target. It is advisory, by
+  the maintainer's choice: it is not a required check of the `main` ruleset (#217).
 - The `**/config/**` ignore is replaced by a targeted ignore of
   `MatchboxEngineConfig.java`, so `ApiTokenFilter` counts.
 - A manual edit of `codecov.yml`, committed as `build`. Due **2026-10-31**.

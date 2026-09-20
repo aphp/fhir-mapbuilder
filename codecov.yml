@@ -6,8 +6,9 @@
 #   - flag `java` : jacoco.xml du module de validation (job test-java)
 #
 # `project` (auto, seuil 1 %) informe sur la tendance globale des deux composants :
-# une PR ne peut pas baisser le total de plus d'un point. Ce statut n'est pas dans
-# les checks requis du ruleset `main` : visible, mais non bloquant.
+# une PR ne peut pas baisser le total de plus d'un point. Ce statut est consultatif
+# par choix du mainteneur (#217) : il n'est pas dans les checks requis du ruleset
+# `main`, donc visible mais non bloquant.
 # `patch` (80 %) est la vraie barrière sur le code neuf, bloquante pour les deux
 # stacks.
 # Les composants `ts` et `java` portent chacun un statut `project` à 90 % : c'est
