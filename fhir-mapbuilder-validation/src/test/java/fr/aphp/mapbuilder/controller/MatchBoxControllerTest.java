@@ -1,6 +1,7 @@
 package fr.aphp.mapbuilder.controller;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -10,6 +11,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import fr.aphp.mapbuilder.model.CompilationError;
 import fr.aphp.mapbuilder.model.ParsingError;
 import fr.aphp.mapbuilder.model.TransformationError;
 import fr.aphp.mapbuilder.model.ValidationError;
@@ -18,6 +20,7 @@ import java.io.IOException;
 import org.hl7.fhir.r4.model.StructureMap;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -27,6 +30,7 @@ import org.springframework.test.web.servlet.MockMvc;
  * {@link MatchBoxService} (mocké).
  */
 @WebMvcTest(MatchBoxController.class)
+@AutoConfigureMockMvc(addFilters = false) // authentication is covered by ApiTokenAuthenticationTest
 class MatchBoxControllerTest {
 
     @Autowired
@@ -157,5 +161,45 @@ class MatchBoxControllerTest {
     @Test
     void resetAndLoadEngine_returns400_whenPathMissing() throws Exception {
         mockMvc.perform(get("/api/matchbox/resetAndLoadEngine")).andExpect(status().isBadRequest());
+    }
+
+    // ---- error exposure ---------------------------------------------------------
+
+    @Test
+    void validate_hidesUnexpectedExceptionDetails_fromTheResponse() throws Exception {
+        doThrow(new IllegalStateException("/home/alice/secret.key is unreadable"))
+                .when(matchBoxService)
+                .setPaths(anyString());
+
+        mockMvc.perform(get("/api/matchbox/validate")
+                        .param("source", "map.fml")
+                        .param("data", "data.json")
+                        .param("output", "out"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().string(containsString("Unexpected error during validation")))
+                .andExpect(content().string(not(containsString("secret.key"))));
+    }
+
+    @Test
+    void parse_hidesUnexpectedExceptionDetails_fromTheResponse() throws Exception {
+        when(matchBoxService.parse(anyString())).thenThrow(new IllegalStateException("/home/alice/secret.key"));
+
+        mockMvc.perform(get("/api/matchbox/parse").param("source", "map.fml"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().string(containsString("Unexpected error during parsing")))
+                .andExpect(content().string(not(containsString("secret.key"))));
+    }
+
+    @Test
+    void validate_keepsTheFmlCompilationMessage_becauseItIsTheProductOutput() throws Exception {
+        when(matchBoxService.compile(anyString()))
+                .thenThrow(new CompilationError("Error during compilation process: line 3, unexpected token"));
+
+        mockMvc.perform(get("/api/matchbox/validate")
+                        .param("source", "map.fml")
+                        .param("data", "data.json")
+                        .param("output", "out"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().string(containsString("line 3, unexpected token")));
     }
 }
