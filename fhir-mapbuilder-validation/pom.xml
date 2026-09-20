@@ -10,7 +10,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <commons.io.version>2.22.0</commons.io.version>
-        <health.matchbox.version>4.1.15</health.matchbox.version>
+        <health.matchbox.version>4.1.16</health.matchbox.version>
 
         <!-- Correctifs de sécurité : versions forcées au-delà de ce que gère
              spring-boot-starter-parent 3.5.16 (dernier patch de la lignée 3.x).
