@@ -253,3 +253,7 @@ already blocks newly introduced high/critical advisories, and an OSV scan that
 blocks PRs was rejected above as too noisy. It can be added later per tool.
 Notifications are a per-user GitHub setting (*Watch → Custom → Security
 alerts*), not something the repository can configure; `CONTRIBUTING.md` says so.
+
+The decision of record for CodeQL is now the "CodeQL" section of ADR 0005
+(advisory, suite `default`, re-evaluation on 2026-11-30). This amendment stays
+as history.
