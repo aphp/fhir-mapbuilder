@@ -112,9 +112,10 @@ suite("extension API token wiring", () => {
         });
 
         function serverRejectsToken() {
-            get.callsFake((url: string) =>
-                Promise.resolve({ status: /health/.test(url) ? 200 : /matchbox\/parse/.test(url) ? 401 : 200 }),
-            );
+            get.callsFake((url: string) => {
+                const rejected = /matchbox\/parse/.test(url);
+                return Promise.resolve({ status: rejected ? 401 : 200 });
+            });
         }
 
         test("tells the user once and does not start a second server", async () => {

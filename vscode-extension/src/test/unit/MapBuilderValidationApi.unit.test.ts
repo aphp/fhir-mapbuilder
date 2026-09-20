@@ -166,6 +166,17 @@ suite("MapBuilderValidationApi", () => {
                 assert.deepStrictEqual(get.firstCall.args[1].headers, { "X-MapBuilder-Token": "test-token" });
             });
 
+            // axios rejects 4xx by default, which the probe would swallow as "inconclusive": a stubbed get cannot
+            // show that, so pin the options that make a 401 arrive as a response
+            test("asks axios to resolve on any status and bounds the wait", async () => {
+                get.resolves({ status: 400 });
+                await mismatchApi.probeToken();
+                const options = get.firstCall.args[1];
+                assert.strictEqual(options.validateStatus(401), true);
+                assert.strictEqual(options.validateStatus(400), true);
+                assert.ok(options.timeout > 0);
+            });
+
             for (const status of [200, 400]) {
                 test(`stays silent when the probe is answered ${status}`, async () => {
                     get.resolves({ status });
