@@ -62,6 +62,16 @@ install` once and it will apply the formatters on every commit. SpotBugs and
 - **No `CHANGELOG` edits.** The changelog and version bumps are produced by
   release automation from the commit history. Do not touch `CHANGELOG.md` in a
   feature PR.
+- **A change to a shipped dependency is a `fix(deps)`.** release-please only
+  opens a release PR when the generated changelog is non-empty, and it hides
+  `build`. A dependency that ends up in the `.vsix` (the Matchbox jar and the
+  other Maven production dependencies, the extension's bundled runtime
+  dependencies) must therefore be committed as `fix(deps): …` so it produces a
+  release; tooling (test, lint, build plugins, GitHub Actions) stays `build`.
+  Dependabot already does this: `fix` for production dependencies, `build` for
+  development ones. Apply the same rule to a manual commit such as a CVE pin.
+  If a dependency is a dev tool, keep it under `devDependencies` — a tool listed
+  as a production dependency would open false releases.
 
 These rules apply to everyone, including bots (Dependabot, release automation);
 there is no exemption path.
