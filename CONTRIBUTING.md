@@ -31,7 +31,7 @@ mvn -B verify
 
 The extension test suite is self-contained: it does **not** need a running
 `fhir-mapbuilder-validation` JAR. The packaged JAR is only exercised by the
-`build` smoke check in CI, not by `npm test`.
+`build` smoke check in CI (and by `os-smoke` on Windows and macOS), not by `npm test`.
 
 ## Formatting and hooks
 

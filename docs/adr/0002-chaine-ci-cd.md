@@ -41,7 +41,8 @@ the top, each job `contents: read` unless noted:
 | `typecheck` | — | `tsc --noEmit`. |
 | `test-ts` | `id-token: write` | Extension tests under `xvfb`, `--coverage`, upload lcov to Codecov (flag `ts`) via OIDC. |
 | `test-java` | `id-token: write` | `mvn verify` (JaCoCo XML), upload to Codecov (flag `java`) via OIDC. |
-| `build` | — | `mvn package -DskipTests`, bundle the jar, `vsce package`, smoke-test the jar (`GET /health` → 200), assert the jar is inside the `.vsix`. |
+| `build` | — | `mvn package -DskipTests`, smoke-test the jar (`.github/scripts/smoke-jar.sh`: `GET /health` → 200, run from a directory whose name has a space and an accent), upload it as the `validation-jar` artifact, bundle the jar, `vsce package`, assert the jar is inside the `.vsix`. |
+| `os-smoke` | — | `windows-latest` and `macos-latest` matrix, `needs: build`: download the `validation-jar` artifact, run the same smoke script, then `npm run test:unit`. No Codecov upload. Advisory: not a required check of the `main` ruleset until it is stably green (ADR 0005, attribute 4). |
 | `dependency-review` | — | PR only: `actions/dependency-review-action`, `fail-on-severity: high`, strong-copyleft `deny-licenses`. |
 | `audit-advisory` | `actions: read`, `security-events: write` | PR only, **non-blocking** reusable OSV-Scanner PR workflow; pushes SARIF to the Security tab. |
 
