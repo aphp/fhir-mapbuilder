@@ -211,26 +211,21 @@ jobs:
         working-directory: fhir-mapbuilder-validation
 
       - name: Smoke-test the validation jar (GET /health -> 200)
-        working-directory: fhir-mapbuilder-validation
-        run: |
-          java -jar target/fhir-mapbuilder-validation.jar &
-          SERVER_PID=$!
-          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+        # Même script que le job `os-smoke` : le jar est lancé depuis un dossier
+        # dont le nom contient un espace et un accent.
+        run: bash .github/scripts/smoke-jar.sh fhir-mapbuilder-validation/target/fhir-mapbuilder-validation.jar
 
-          # L'init du moteur Matchbox charge les paquets FHIR depuis le classpath
-          # (pas de réseau) ; observé ~40 s en local, 120 s laisse de la marge sur
-          # les runners CI plus lents.
-          for i in $(seq 1 60); do
-            code="$(curl -s -o /dev/null -w '%{http_code}' http://localhost:9031/health || true)"
-            if [ "$code" = "200" ]; then
-              echo "jar healthy after ~$((i * 2))s"
-              exit 0
-            fi
-            sleep 2
-          done
-
-          echo "::error::validation jar never returned 200 on /health within 120s"
-          exit 1
+      - name: Upload the validation jar for the OS smoke jobs
+        # Le jar est du Java pur : celui-ci, construit une seule fois, est exactement
+        # celui qui part dans le .vsix ; `os-smoke` le lance sous Windows et macOS.
+        # Déjà compressé : pas de recompression, et un jour de rétention.
+        uses: actions/upload-artifact@v7
+        with:
+          name: validation-jar
+          path: fhir-mapbuilder-validation/target/fhir-mapbuilder-validation.jar
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
 
       - name: Bundle the jar into the extension
         run: |
@@ -253,6 +248,59 @@ jobs:
             unzip -l "$vsix"
             exit 1
           fi
+
+  os-smoke:
+    name: os-smoke
+    # Signal de parité OS (ADR 0005, attribut 4). Le nom `smoke` est pris par le job de
+    # release.yml (propagation Open VSX) : celui-ci vérifie que le jar et le code TS
+    # tournent sous Windows et macOS. NON requis dans le ruleset `main` : on le rend
+    # requis une fois stablement vert (ADR 0001, « as each one first goes green »).
+    # Limites assumées : la suite d'intégration `vscode-test` et le lancement réel du
+    # processus par l'extension (`shell: true`) ne tournent pas ici.
+    needs: build
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15 # non mesuré : à ajuster au premier run (jar à télécharger, démarrage <= 120 s, tests unitaires)
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: vscode-extension/package.json
+          cache: npm
+          cache-dependency-path: vscode-extension/package-lock.json
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Download the validation jar built on Linux
+        uses: actions/download-artifact@v8
+        with:
+          name: validation-jar
+          path: fhir-mapbuilder-validation/target
+
+      - name: Smoke-test the validation jar (GET /health -> 200)
+        shell: bash
+        run: bash .github/scripts/smoke-jar.sh fhir-mapbuilder-validation/target/fhir-mapbuilder-validation.jar
+
+      - name: Install Node dependencies
+        run: npm ci
+        working-directory: vscode-extension
+
+      - name: Run the unit tests
+        # Pas d'upload Codecov depuis ces jobs : les chiffres du composant `ts` viennent de Linux.
+        run: npm run test:unit
+        working-directory: vscode-extension
 
   dependency-review:
     name: dependency-review
