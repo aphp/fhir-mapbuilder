@@ -5,20 +5,22 @@
 #                   (job test-ts, deux uploads fusionnés par union côté Codecov)
 #   - flag `java` : jacoco.xml du module de validation (job test-java)
 #
-# `project` (auto) informe sur la tendance globale des deux composants.
+# `project` (auto, seuil 1 %) informe sur la tendance globale des deux composants :
+# une PR ne peut pas baisser le total de plus d'un point. Ce statut n'est pas dans
+# les checks requis du ruleset `main` : visible, mais non bloquant.
 # `patch` (80 %) est la vraie barrière sur le code neuf, bloquante pour les deux
 # stacks.
-# Les composants `ts` et `java` portent chacun un statut `project` à 80 % : depuis
-# leurs socles de tests respectifs (wayfinder #116 pour `java`, #136 pour `ts`) la
-# couverture absolue de chaque module est tenue au-dessus de 80 %
-# (voir ADR 0002 §« Barrière de couverture »).
+# Les composants `ts` et `java` portent chacun un statut `project` à 90 % : c'est
+# le plafond décidé par l'ADR 0005, sans palier au-delà. La couverture absolue de
+# chaque module est mesurée à environ 95 %, soit 5 points de marge
+# (voir ADR 0002 §« Coverage gate » et son avenant du 2026-09-20).
 
 coverage:
   status:
     project:
       default:
         target: auto
-        threshold: 0%
+        threshold: 1%
     patch:
       default:
         target: 80%
@@ -30,19 +32,19 @@ component_management:
       paths:
         - vscode-extension/src/**
       statuses:
-        # Couverture absolue du module tenue >= 80 % depuis le socle (#136).
+        # Couverture absolue du module tenue >= 90 % (plafond, ADR 0005) ; socle #136.
         # Le statut `patch` du composant hérite du défaut repo (80 %, bloquant).
         - type: project
-          target: 80%
+          target: 90%
     - component_id: java
       name: java
       paths:
         - fhir-mapbuilder-validation/**
       statuses:
-        # Couverture absolue du module tenue >= 80 % depuis le socle (#116).
+        # Couverture absolue du module tenue >= 90 % (plafond, ADR 0005) ; socle #116.
         # Le statut `patch` du composant hérite du défaut repo (80 %, bloquant).
         - type: project
-          target: 80%
+          target: 90%
 
 flags:
   ts:
@@ -50,10 +52,12 @@ flags:
   java:
     carryforward: true
 
-# Fichiers hors périmètre de couverture (point d'entrée Spring, DTO/config
-# sans logique, code de test). Ils n'entrent pas dans le calcul.
+# Fichiers hors périmètre de couverture (point d'entrée Spring, DTO sans logique,
+# câblage Spring du moteur sans logique propre, code de test). Ils n'entrent pas
+# dans le calcul. Le reste de `config/` compte : `ApiTokenFilter` est le code
+# d'authentification du serveur.
 ignore:
   - "**/MatchBoxApplication.java"
   - "**/model/**"
-  - "**/config/**"
+  - "**/config/MatchboxEngineConfig.java"
   - "**/test/**"
