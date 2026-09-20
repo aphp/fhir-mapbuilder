@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { OutputChannel } from "vscode";
+import { loadOrCreateApiToken } from "./ApiToken";
 import { FmlCompletionProvider } from "./FmlCompletionProvider";
 import { FhirDefinition } from "./FhirDefinition";
 import { FmlValidation } from "./FmlValidation";
@@ -10,6 +11,7 @@ import { UiConstants } from "./constants/UiConstants";
 
 const FML_MODE = { language: "fml", scheme: "file" };
 let watcher: MapBuilderWatcher;
+let validationApi: MapBuilderValidationApi | undefined;
 
 export async function activate(context: vscode.ExtensionContext): Promise<{
     completionProviderInstance: FmlCompletionProvider | null;
@@ -22,7 +24,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<{
 
         addFMLTemplate(context);
 
-        const api = await getMapBuilderValidationApi(detailsChannel);
+        const apiToken = await loadOrCreateApiToken(context.secrets);
+        const api = await getMapBuilderValidationApi(detailsChannel, apiToken);
+        validationApi = api;
         addValidationCommand(principalChannel, api, context);
         addValidationWithDefaultFilesCommand(principalChannel, api, context);
         addValidationAfterLoadingPackageCommand(principalChannel, api, context);
@@ -36,13 +40,16 @@ export async function activate(context: vscode.ExtensionContext): Promise<{
 
 export function deactivate() {
     watcher?.dispose();
-    const api = new MapBuilderValidationApi(UiConstants.detailsChannel);
-    api.callShutDownProcess();
+    // Only the API built at activation holds the token the running server expects
+    validationApi?.callShutDownProcess();
 }
 
-async function getMapBuilderValidationApi(validationOutputChannel: OutputChannel): Promise<MapBuilderValidationApi> {
-    const mapBuilderJavaProcess = new MapBuilderJavaProcess(validationOutputChannel);
-    const api = new MapBuilderValidationApi(validationOutputChannel);
+async function getMapBuilderValidationApi(
+    validationOutputChannel: OutputChannel,
+    apiToken: string,
+): Promise<MapBuilderValidationApi> {
+    const mapBuilderJavaProcess = new MapBuilderJavaProcess(validationOutputChannel, apiToken);
+    const api = new MapBuilderValidationApi(validationOutputChannel, apiToken);
     const isAppRunning = await api.isAppRunning();
     if (!isAppRunning) {
         mapBuilderJavaProcess.start();

@@ -21,7 +21,7 @@ suite("MapBuilderJavaProcess", () => {
     let proc: MapBuilderJavaProcess;
 
     setup(() => {
-        proc = new MapBuilderJavaProcess(makeLogger());
+        proc = new MapBuilderJavaProcess(makeLogger(), "test-token");
         sinon.stub(console, "error");
     });
 
@@ -179,6 +179,37 @@ suite("MapBuilderJavaProcess", () => {
             const spawn = sinon.stub(childProcess, "spawn");
             proc.start();
             assert.strictEqual(spawn.called, false);
+        });
+
+        test("hands the API token to the server through the environment, not the command line", () => {
+            sinon.stub(priv(proc), "buildShellCommand").returns({ command: "java", args: ["-jar", "x.jar"] });
+            const spawn = sinon.stub(childProcess, "spawn").returns(fakeProcess());
+            sinon.stub(window, "showInformationMessage");
+
+            proc.start();
+
+            const [, args, options] = spawn.firstCall.args as [string, string[], ChildProcessNS.SpawnOptions];
+            assert.strictEqual(options.env?.MAPBUILDER_API_TOKEN, "test-token");
+            assert.strictEqual(
+                args.some((a) => a.includes("test-token")),
+                false,
+            );
+        });
+
+        test("does not print the token in the startup log line", () => {
+            const logger = makeLogger();
+            proc = new MapBuilderJavaProcess(logger, "test-token");
+            sinon.stub(priv(proc), "buildShellCommand").returns({ command: "java", args: ["-jar", "x.jar"] });
+            sinon.stub(childProcess, "spawn").returns(fakeProcess());
+            sinon.stub(window, "showInformationMessage");
+
+            proc.start();
+
+            const lines = (logger.appendLine as sinon.SinonSpy).getCalls().map((c) => String(c.args[0]));
+            assert.strictEqual(
+                lines.some((l) => l.includes("test-token")),
+                false,
+            );
         });
 
         test("spawns the process and wires stdout/stderr/close/error handlers", () => {

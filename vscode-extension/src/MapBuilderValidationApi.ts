@@ -1,5 +1,6 @@
 import axios from "axios";
 import { ApiConstants } from "./constants/ApiConstants";
+import { API_TOKEN_HEADER } from "./ApiToken";
 import { OutputChannel, window, workspace } from "vscode";
 import os from "os";
 import { getDataFile, logData } from "./utils";
@@ -7,8 +8,10 @@ import path from "path";
 
 export class MapBuilderValidationApi {
     mapBuilderValidationLogger: OutputChannel;
+    private readonly apiToken: string;
 
-    constructor(validationOutputChannel: OutputChannel) {
+    constructor(validationOutputChannel: OutputChannel, apiToken: string) {
+        this.apiToken = apiToken;
         this.mapBuilderValidationLogger = validationOutputChannel;
     }
 
@@ -26,7 +29,7 @@ export class MapBuilderValidationApi {
 
             const url = this.buildValidateUrl();
             logData(`Invoking matchbox validate: URL= ${url}`, this.mapBuilderValidationLogger);
-            const response = await axios.get(url);
+            const response = await axios.get(url, this.authConfig());
             const result = `Validation response Status: ${response.status}, Validation response data: ${response.data}`;
             logData(result, this.mapBuilderValidationLogger);
             return true;
@@ -48,7 +51,7 @@ export class MapBuilderValidationApi {
             }
             const url = `${ApiConstants.parseUrl}?source=${encodeURIComponent(filePath)}`;
             logData(`Invoking matchbox parse: URL= ${url}`, this.mapBuilderValidationLogger);
-            const response = await axios.get(url);
+            const response = await axios.get(url, this.authConfig());
             const result = `Parsing response status: ${response.status}, Parsing response data: ${response.data}`;
             logData(result, this.mapBuilderValidationLogger);
             return response.status === 200;
@@ -70,7 +73,7 @@ export class MapBuilderValidationApi {
             }
             const url = this.buildResetAndLoadEngineUrl();
             logData(`Invoking matchbox reset and load engine: URL= ${url}`, this.mapBuilderValidationLogger);
-            const response = await axios.get(url);
+            const response = await axios.get(url, this.authConfig());
             return this.getPackageLoadedSuccessMessage(response.data);
         } catch (error) {
             const result = `Error invoking matchbox reset and load engine: ${error}`;
@@ -81,7 +84,12 @@ export class MapBuilderValidationApi {
 
     // Call the matchbox validation and kill the process
     public callShutDownProcess() {
-        axios.get(ApiConstants.shutDownUrl);
+        axios.get(ApiConstants.shutDownUrl, this.authConfig());
+    }
+
+    // The token goes on every call except the open /health endpoint
+    private authConfig() {
+        return { headers: { [API_TOKEN_HEADER]: this.apiToken } };
     }
 
     // Check if the Java application is running

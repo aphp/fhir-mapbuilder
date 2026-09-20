@@ -10,6 +10,20 @@ This application helps the alignment designer use FML without errors by ensuring
 
 The project use the MatchBox Engine dependency, specifically version 3.9.12.
 
+## Authentication
+
+The server only listens on the loopback interface. Every endpoint except `GET /health` requires the API token in the
+`X-MapBuilder-Token` header; a missing or wrong token gets `401 Unauthorized`.
+
+- Started by the VS Code extension, the server receives the token through the `MAPBUILDER_API_TOKEN` environment
+  variable. The extension generates it once and keeps it in VS Code's secret storage.
+- Started by hand, set `MAPBUILDER_API_TOKEN` yourself. If it is unset, the server generates a token at startup and
+  logs it once (`API token (generated): ...`).
+
+```shell
+MAPBUILDER_API_TOKEN=change-me java -jar fhir-mapbuilder-validation.jar
+```
+
 ## API Endpoints
 
 ### Validate FML Mapping
@@ -33,7 +47,7 @@ The project use the MatchBox Engine dependency, specifically version 3.9.12.
 **Example Request:**
 
 ```shell
-curl -X GET "http://localhost:8080/api/matchbox/validate?source=path.example.fml&data=path.input.json&output=path.output"
+curl -X GET -H "X-MapBuilder-Token: $MAPBUILDER_API_TOKEN" "http://localhost:8080/api/matchbox/validate?source=path.example.fml&data=path.input.json&output=path.output"
 ```
 ### Reset and Reload MatchBox Engine
 
@@ -52,7 +66,7 @@ curl -X GET "http://localhost:8080/api/matchbox/validate?source=path.example.fml
 **Example Request:**
 
 ```shell
-curl -X GET "http://localhost:8080/api/matchbox/resetAndLoadEngine?path=path.ig.package"
+curl -X GET -H "X-MapBuilder-Token: $MAPBUILDER_API_TOKEN" "http://localhost:8080/api/matchbox/resetAndLoadEngine?path=path.ig.package"
 ```
 
 ### Health Check
@@ -82,7 +96,7 @@ curl -X GET "http://localhost:8080/health"
 **Example Request:**
 
 ```shell
-curl -X GET "http://localhost:8080/shutdown"
+curl -X GET -H "X-MapBuilder-Token: $MAPBUILDER_API_TOKEN" "http://localhost:8080/shutdown"
 ```
 
 ## Packaging the Project

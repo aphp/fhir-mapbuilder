@@ -15,10 +15,52 @@ suite("MapBuilderValidationApi", () => {
 
     setup(() => {
         get = sinon.stub(axios, "get");
-        api = new MapBuilderValidationApi(noopChannel);
+        api = new MapBuilderValidationApi(noopChannel, "test-token");
     });
 
     teardown(standardTeardown);
+
+    suite("API token", () => {
+        const tokenHeader = { headers: { "X-MapBuilder-Token": "test-token" } };
+
+        function okEverywhere() {
+            get.resolves({ status: 200, data: "OK" });
+        }
+
+        function callFor(pattern: RegExp) {
+            return get.getCalls().find((c) => pattern.test(c.args[0] as string));
+        }
+
+        test("validate sends the token", async () => {
+            okEverywhere();
+            await api.callValidateStructureMap();
+            assert.deepStrictEqual(callFor(/matchbox\/validate/)?.args[1], tokenHeader);
+        });
+
+        test("parse sends the token", async () => {
+            okEverywhere();
+            await api.callParseStructureMap("/ws/map.fml");
+            assert.deepStrictEqual(callFor(/matchbox\/parse/)?.args[1], tokenHeader);
+        });
+
+        test("reset and load engine sends the token", async () => {
+            okEverywhere();
+            await api.callResetAndLoadEngine();
+            assert.deepStrictEqual(callFor(/resetAndLoadEngine/)?.args[1], tokenHeader);
+        });
+
+        test("shutdown sends the token", () => {
+            okEverywhere();
+            api.callShutDownProcess();
+            assert.deepStrictEqual(callFor(/shutdown/)?.args[1], tokenHeader);
+        });
+
+        test("the open health endpoint never receives the token", async () => {
+            okEverywhere();
+            await api.isAppRunning();
+            assert.strictEqual(callFor(/health/)?.args[1], undefined);
+        });
+    });
 
     suite("isAppRunning", () => {
         test("true on HTTP 200", async () => {

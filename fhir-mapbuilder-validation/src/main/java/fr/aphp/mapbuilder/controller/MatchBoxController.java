@@ -1,5 +1,7 @@
 package fr.aphp.mapbuilder.controller;
 
+import fr.aphp.mapbuilder.model.CompilationError;
+import fr.aphp.mapbuilder.model.ParsingError;
 import fr.aphp.mapbuilder.model.TransformationError;
 import fr.aphp.mapbuilder.model.ValidationError;
 import fr.aphp.mapbuilder.service.MatchBoxService;
@@ -17,6 +19,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/matchbox")
 public class MatchBoxController {
+    // Unexpected failures never echo the exception text; the detail goes to the server log
+    private static final String UNEXPECTED_ERROR_PREFIX = "Unexpected error during ";
+    private static final String SEE_LOGS = ". See the validation server logs.";
+
     private final MatchBoxService matchBoxService;
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MatchBoxController.class);
 
@@ -61,9 +67,13 @@ public class MatchBoxController {
                                 .body(errorMessage);
                     });
 
+        } catch (CompilationError e) {
+            // The FML compilation message is the product's output for the user
+            log.error("Compilation error: {}", e.getMessage(), e);
+            return createErrorResponse("Unexpected error: " + e.getMessage());
         } catch (Exception e) {
             log.error("Unexpected error during validation process", e);
-            return createErrorResponse("Unexpected error: " + e.getMessage());
+            return createErrorResponse(UNEXPECTED_ERROR_PREFIX + "validation" + SEE_LOGS);
         }
     }
 
@@ -76,9 +86,12 @@ public class MatchBoxController {
             matchBoxService.parse(source);
             return ResponseEntity.ok("structureMap is parsed!");
 
+        } catch (ParsingError e) {
+            log.error("Parsing error", e);
+            return createErrorResponse("Unexpected error: " + e.getMessage());
         } catch (Exception e) {
             log.error("Unexpected error during parsing process", e);
-            return createErrorResponse("Unexpected error: " + e.getMessage());
+            return createErrorResponse(UNEXPECTED_ERROR_PREFIX + "parsing" + SEE_LOGS);
         }
     }
 

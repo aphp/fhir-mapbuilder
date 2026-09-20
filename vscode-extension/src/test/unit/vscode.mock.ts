@@ -226,6 +226,26 @@ export const window = {
     },
 };
 
+export const languages = {
+    registerCompletionItemProvider(..._args: unknown[]): DisposableLike {
+        return { dispose: () => {} };
+    },
+
+    setTextDocumentLanguage(..._args: unknown[]): Promise<void> {
+        return Promise.resolve();
+    },
+};
+
+export const commands = {
+    registerCommand(..._args: unknown[]): DisposableLike {
+        return { dispose: () => {} };
+    },
+
+    executeCommand(..._args: unknown[]): Promise<unknown> {
+        return Promise.resolve(undefined);
+    },
+};
+
 export const extensions = {
     getExtension(_extensionId: string): ExtensionLike | undefined {
         return installedExtension;
@@ -275,6 +295,8 @@ export function resetVscodeMock(): void {
 export default {
     workspace,
     window,
+    languages,
+    commands,
     extensions,
     Uri,
     FileType,

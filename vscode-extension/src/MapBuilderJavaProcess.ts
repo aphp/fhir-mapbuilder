@@ -1,6 +1,7 @@
 import { execSync, spawnSync, spawn } from "node:child_process";
 import { existsSync, accessSync, constants } from "fs";
 import { ApiConstants } from "./constants/ApiConstants";
+import { API_TOKEN_ENV_VAR } from "./ApiToken";
 import { extensions, OutputChannel, window, workspace, WorkspaceConfiguration } from "vscode";
 import { logData } from "./utils";
 import { UiConstants } from "./constants/UiConstants";
@@ -9,8 +10,10 @@ import path from "path";
 export class MapBuilderJavaProcess {
     mapBuilderValidationLogger: OutputChannel;
     config: WorkspaceConfiguration;
+    private readonly apiToken: string;
 
-    constructor(validationOutputChannel: OutputChannel) {
+    constructor(validationOutputChannel: OutputChannel, apiToken: string) {
+        this.apiToken = apiToken;
         this.mapBuilderValidationLogger = validationOutputChannel;
         this.config = workspace.getConfiguration(UiConstants.configName);
     }
@@ -23,7 +26,11 @@ export class MapBuilderJavaProcess {
         window.showInformationMessage("Starting matchbox java process");
         logData(`Starting java process - cmd: ${command} ${args.join(" ")}`, this.mapBuilderValidationLogger);
 
-        const javaProcess = spawn(command, args, { shell: true });
+        // The token goes through the environment: a command-line argument would show in the process list
+        const javaProcess = spawn(command, args, {
+            shell: true,
+            env: { ...process.env, [API_TOKEN_ENV_VAR]: this.apiToken },
+        });
 
         javaProcess.stdout.on("data", (data) => {
             const logEntry = data.toString();
