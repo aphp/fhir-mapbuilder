@@ -1,0 +1,71 @@
+name: Bug report
+description: Something does not work as expected in the extension or the validation server
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. For a security problem, do not open an issue: see
+        [SECURITY.md](https://github.com/aphp/fhir-mapbuilder/blob/main/SECURITY.md).
+  - type: checkboxes
+    id: wrong-result
+    attributes:
+      label: Wrong result
+      description: |
+        The extension reports a validation verdict or a transformation result that differs from
+        what the engine should give for the same StructureMap and inputs: a false success, a
+        false error or a wrong output, whatever the root cause (ours or Matchbox's). Crashes,
+        hangs and UI problems are ordinary bugs. Ticking this only helps triage; the maintainer
+        sets the label.
+      options:
+        - label: The extension shows a wrong result
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The FML file (or a minimal excerpt) and the input data, if they matter.
+    validations:
+      required: true
+  - type: input
+    id: extension-version
+    attributes:
+      label: Extension version
+      placeholder: "x.y.z (Extensions view, or the version in the FHIR MapBuilder entry)"
+    validations:
+      required: true
+  - type: input
+    id: vscode-version
+    attributes:
+      label: VS Code version
+  - type: input
+    id: java-version
+    attributes:
+      label: Java version
+      description: The output of `java -version`.
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Other
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log excerpt
+      description: From the "FHIR MapBuilder Service" output channel.
+      render: text
