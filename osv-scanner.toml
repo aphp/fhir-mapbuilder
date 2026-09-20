@@ -1,6 +1,6 @@
 # OSV-Scanner suppression file — https://google.github.io/osv-scanner/configuration/
 #
-# Passed via `--config=osv-scanner.toml` by both the weekly blocking scan
+# Passed via `--config=osv-scanner.toml` by both the weekly scan
 # (`.github/workflows/audit.yml`) and the advisory PR scan (`audit-advisory` job
 # in `.github/workflows/ci.yml`). It covers `fhir-mapbuilder-validation/pom.xml`
 # and `vscode-extension/package-lock.json` in a single pass.
