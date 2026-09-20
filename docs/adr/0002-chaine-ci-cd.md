@@ -32,7 +32,8 @@ Before this work:
 ### One consolidated `ci.yml`
 
 A single workflow on `pull_request` and `push` to `main`, `permissions: {}` at
-the top, each job `contents: read` unless noted:
+the top, each job `contents: read` unless noted (`dependency-review` has its own
+workflow since 2026-09-20, see Amendments):
 
 | Job | Extra permissions | What it does |
 |---|---|---|
@@ -43,7 +44,6 @@ the top, each job `contents: read` unless noted:
 | `test-java` | `id-token: write` | `mvn verify` (JaCoCo XML), upload to Codecov (flag `java`) via OIDC. |
 | `build` | — | `mvn package -DskipTests`, smoke-test the jar (`.github/scripts/smoke-jar.sh`: `GET /health` → 200, run from a directory whose name has a space and an accent), upload it as the `validation-jar` artifact, bundle the jar, `vsce package`, assert the jar is inside the `.vsix`. |
 | `os-smoke` | — | `windows-latest` and `macos-latest` matrix, `needs: build`: download the `validation-jar` artifact, run the same smoke script, then `npm run test:unit`. No Codecov upload. Advisory: not a required check of the `main` ruleset until it is stably green (ADR 0005, attribute 4). |
-| `dependency-review` | — | PR only: `actions/dependency-review-action`, `fail-on-severity: high`, strong-copyleft `deny-licenses`. |
 | `audit-advisory` | `actions: read`, `security-events: write` | PR only, **non-blocking** reusable OSV-Scanner PR workflow; pushes SARIF to the Security tab. |
 
 Build tooling for the Java module (Spotless, SpotBugs, JaCoCo, Enforcer) is
@@ -289,3 +289,26 @@ what changed in `codecov.yml`:
 Unchanged: repo `patch` 80 % (both stacks), the other ignores, the tokenless OIDC
 uploads. After this change a floor is lowered only through a motivated, dated
 exception decided at the monthly review (ADR 0005).
+
+### 2026-09-20 — `dependency-review` moves to its own workflow
+
+The Actions list of this repository is aligned on the sibling repositories
+(`datahub-yaml-source`, and the reference repository of ADR 0001), where
+`dependency-review` is a workflow of its own.
+
+- **What moved.** The `dependency-review` job leaves `ci.yml` for
+  `.github/workflows/dependency-review.yml`, unchanged: same action
+  (`actions/dependency-review-action`, `fail-on-severity: high`, strong-copyleft
+  `deny-licenses`), same job name. The check keeps the name `dependency-review`, so
+  the required check of the `main` ruleset still matches. `audit.yml` is renamed
+  "Audit dependencies" (it was "Audit dépendances") to match the English names of
+  the other workflows.
+- **Release PR.** release-please opens its PR with the `GITHUB_TOKEN`, which emits
+  no `pull_request` (ADR 0003, amendment on the required checks). `release.yml`
+  already re-triggers `ci.yml` and `commit-policy.yml` with `workflow_dispatch`; it
+  now re-triggers `dependency-review.yml` too. The new workflow declares
+  `workflow_dispatch` and its job is skipped there, as it was inside `ci.yml`: a
+  skipped required check counts as passing.
+
+Unchanged: the trigger (pull requests to `main`), the gates, the tag pin of the
+action, and the rest of §"Dependency hygiene".

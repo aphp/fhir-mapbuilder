@@ -1,4 +1,4 @@
-name: Audit dépendances
+name: Audit dependencies
 
 # Veille de fond hebdomadaire, complémentaire de la barrière advisory sur PR
 # (job `audit-advisory` de `ci.yml`). Rejoue OSV-Scanner contre `pom.xml` +

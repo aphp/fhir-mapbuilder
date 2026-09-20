@@ -72,12 +72,13 @@ jobs:
 
       - name: Kick required checks onto the release PR
         # release-please ouvre / met à jour sa PR via le `GITHUB_TOKEN`, ce qui
-        # n'émet aucun `pull_request` : `ci.yml` / `commit-policy.yml` ne
-        # tournent pas et la PR reste BLOCKED sur les checks requis. On les
-        # relance via `workflow_dispatch` (seul déclencheur qui part depuis un
-        # contexte `GITHUB_TOKEN`) sur la branche de la PR ; les runs rapportent
-        # leurs checks sur son HEAD SHA = HEAD de la PR. Rejoué à chaque push
-        # `main` qui met la PR à jour (force-push de release-please inclus).
+        # n'émet aucun `pull_request` : `ci.yml` / `commit-policy.yml` /
+        # `dependency-review.yml` ne tournent pas et la PR reste BLOCKED sur les
+        # checks requis. On les relance via `workflow_dispatch` (seul déclencheur
+        # qui part depuis un contexte `GITHUB_TOKEN`) sur la branche de la PR ; les
+        # runs rapportent leurs checks sur son HEAD SHA = HEAD de la PR. Rejoué à
+        # chaque push `main` qui met la PR à jour (force-push de release-please
+        # inclus).
         # Voir ADR 0003 §Amendments, wayfinder #126.
         # `pr` est vide quand aucun push n'ouvre de PR de release ; `fromJSON('')`
         # casserait le template même avec un `if:` faux, donc on garde sur
@@ -90,8 +91,9 @@ jobs:
         run: |
           branch="$(printf '%s' "$RELEASE_PR" | jq -r '.headBranchName')"
           echo "release PR branch: $branch"
-          gh workflow run ci.yml            --ref "$branch"
-          gh workflow run commit-policy.yml --ref "$branch"
+          gh workflow run ci.yml                --ref "$branch"
+          gh workflow run commit-policy.yml     --ref "$branch"
+          gh workflow run dependency-review.yml --ref "$branch"
 
   build:
     name: build

@@ -176,8 +176,9 @@ Two token-based fixes were considered and dropped:
   long-lived, human-tied secret to the PAT debt above.
 
 Fix (option D, no new secret): the `release-please` job in `release.yml`, after
-running the action, re-triggers `ci.yml` and `commit-policy.yml` against the
-release PR's head branch with `gh workflow run` (`workflow_dispatch` is the one
+running the action, re-triggers `ci.yml`, `commit-policy.yml` and (since
+2026-09-20, when ADR 0002 moved it to its own workflow) `dependency-review.yml`
+against the release PR's head branch with `gh workflow run` (`workflow_dispatch` is the one
 event that fires even from a `GITHUB_TOKEN` context). The dispatched runs report
 their check contexts on the branch HEAD SHA, which is the PR HEAD SHA, so the
 `main` ruleset's required checks resolve. The step is guarded by
