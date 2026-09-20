@@ -259,7 +259,7 @@ jobs:
     # processus par l'extension (`shell: true`) ne tournent pas ici.
     needs: build
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15 # non mesuré : à ajuster au premier run (jar à télécharger, démarrage <= 120 s, tests unitaires)
+    timeout-minutes: 15 # mesuré : ~1 min 10 (macOS), ~1 min 50 (Windows) ; le smoke du jar attend jusqu'à 120 s
     permissions:
       contents: read
     strategy:
