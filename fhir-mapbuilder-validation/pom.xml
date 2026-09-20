@@ -10,7 +10,6 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <commons.io.version>2.22.0</commons.io.version>
-        <fhir.core.version>6.10.4</fhir.core.version>
         <health.matchbox.version>4.1.15</health.matchbox.version>
 
         <!-- Correctifs de sécurité : versions forcées au-delà de ce que gère
@@ -69,22 +68,6 @@
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>${commons.io.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>ca.uhn.hapi.fhir</groupId>
-            <artifactId>org.hl7.fhir.r5</artifactId>
-            <version>${fhir.core.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>ca.uhn.hapi.fhir</groupId>
-            <artifactId>org.hl7.fhir.r4</artifactId>
-            <version>${fhir.core.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-io</groupId>
-                    <artifactId>commons-io</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
@@ -183,7 +166,15 @@
             </plugin>
 
             <!-- Garde-fou dépendances : interdit les version ranges / SNAPSHOT,
-                 impose une version Maven minimale. Lié à `validate`. -->
+                 impose une version Maven minimale, et exige que tous les
+                 org.hl7.fhir.* résolvent à la même version. Lié à `validate`.
+                 Les versions org.hl7.fhir.* (r4, r5, utilities...) viennent de
+                 matchbox-engine : ne pas les épingler une par une. Un pin isolé
+                 mélange deux versions sur le classpath et fait échouer
+                 MatchboxEngine à l'exécution (NoClassDefFoundError, cf. #178,
+                 #182). La règle requireSameVersions échoue alors au build. Si une
+                 CVE impose un override, épingler tout le train org.hl7.fhir.*
+                 d'un coup via dependencyManagement. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
@@ -200,6 +191,11 @@
                                     <allowSnapshots>false</allowSnapshots>
                                 </banDynamicVersions>
                                 <requireReleaseDeps/>
+                                <requireSameVersions>
+                                    <dependencies>
+                                        <dependency>ca.uhn.hapi.fhir:org.hl7.fhir.*</dependency>
+                                    </dependencies>
+                                </requireSameVersions>
                                 <requireMavenVersion>
                                     <version>[3.9,)</version>
                                 </requireMavenVersion>
