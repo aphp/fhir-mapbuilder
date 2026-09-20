@@ -7,6 +7,8 @@ import { FmlValidation } from "./FmlValidation";
 import { MapBuilderJavaProcess } from "./MapBuilderJavaProcess";
 import { MapBuilderValidationApi } from "./MapBuilderValidationApi";
 import { MapBuilderWatcher } from "./MapBuilderWatcher";
+import { notifyTokenMismatch } from "./TokenMismatch";
+import { ApiConstants } from "./constants/ApiConstants";
 import { UiConstants } from "./constants/UiConstants";
 
 const FML_MODE = { language: "fml", scheme: "file" };
@@ -49,9 +51,14 @@ async function getMapBuilderValidationApi(
     apiToken: string,
 ): Promise<MapBuilderValidationApi> {
     const mapBuilderJavaProcess = new MapBuilderJavaProcess(validationOutputChannel, apiToken);
-    const api = new MapBuilderValidationApi(validationOutputChannel, apiToken);
+    const api = new MapBuilderValidationApi(validationOutputChannel, apiToken, () => {
+        void notifyTokenMismatch(validationOutputChannel, ApiConstants.apiServerPort);
+    });
     const isAppRunning = await api.isAppRunning();
-    if (!isAppRunning) {
+    if (isAppRunning) {
+        // Whoever holds the port may have been started with another token: find out now, not on the first request
+        await api.probeToken();
+    } else {
         mapBuilderJavaProcess.start();
     }
     return api;

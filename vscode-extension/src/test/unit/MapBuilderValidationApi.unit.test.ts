@@ -6,6 +6,7 @@ import * as assert from "assert";
 import * as sinon from "sinon";
 import axios from "axios";
 import { MapBuilderValidationApi } from "../../MapBuilderValidationApi";
+import { ApiConstants } from "../../constants/ApiConstants";
 import { setConfig, setWorkspaceFolders, window } from "./vscode.mock";
 import { noopChannel, priv, standardTeardown } from "./_helpers";
 
@@ -59,6 +60,136 @@ suite("MapBuilderValidationApi", () => {
             okEverywhere();
             await api.isAppRunning();
             assert.strictEqual(callFor(/health/)?.args[1], undefined);
+        });
+    });
+
+    suite("token mismatch", () => {
+        let onMismatch: sinon.SinonStub;
+        let mismatchApi: MapBuilderValidationApi;
+
+        setup(() => {
+            onMismatch = sinon.stub();
+            mismatchApi = new MapBuilderValidationApi(noopChannel, "test-token", onMismatch);
+        });
+
+        function unauthorized() {
+            return Object.assign(new Error("Request failed with status code 401"), {
+                isAxiosError: true,
+                response: { status: 401 },
+            });
+        }
+
+        function healthyButRejecting() {
+            get.callsFake((url: string) =>
+                /health/.test(url) ? Promise.resolve({ status: 200 }) : Promise.reject(unauthorized()),
+            );
+        }
+
+        const calls: [string, (api: MapBuilderValidationApi) => Promise<unknown>][] = [
+            ["validate", (a) => a.callValidateStructureMap()],
+            ["parse", (a) => a.callParseStructureMap("/ws/map.fml")],
+            ["reset and load engine", (a) => a.callResetAndLoadEngine()],
+        ];
+
+        suite("a 401 on a regular call", () => {
+            for (const [name, call] of calls) {
+                test(`${name} reports a mismatch`, async () => {
+                    healthyButRejecting();
+                    await call(mismatchApi);
+                    assert.strictEqual(onMismatch.callCount, 1);
+                });
+            }
+
+            test("reports once across a rejected probe and rejected calls", async () => {
+                get.resolves({ status: 401 });
+                await mismatchApi.probeToken();
+                healthyButRejecting();
+                await mismatchApi.callParseStructureMap("/ws/map.fml");
+                await mismatchApi.callParseStructureMap("/ws/map.fml");
+                assert.strictEqual(onMismatch.callCount, 1);
+            });
+
+            test("ignores other failures", async () => {
+                get.callsFake((url: string) =>
+                    /health/.test(url) ? Promise.resolve({ status: 200 }) : Promise.reject(new Error("boom")),
+                );
+                await mismatchApi.callParseStructureMap("/ws/map.fml");
+                assert.strictEqual(onMismatch.called, false);
+            });
+        });
+
+        suite("once a mismatch is reported", () => {
+            let lines: string[];
+
+            setup(async () => {
+                lines = [];
+                const channel = { appendLine: (l: string) => lines.push(l), append: () => {} } as never;
+                mismatchApi = new MapBuilderValidationApi(channel, "test-token", onMismatch);
+                get.resolves({ status: 401 });
+                await mismatchApi.probeToken();
+                get.resetHistory();
+            });
+
+            test("validate, parse and reset make no request and return their failure value", async () => {
+                assert.strictEqual(await mismatchApi.callValidateStructureMap(), false);
+                assert.strictEqual(await mismatchApi.callParseStructureMap("/ws/map.fml"), false);
+                assert.strictEqual(await mismatchApi.callResetAndLoadEngine(), null);
+                assert.strictEqual(get.called, false);
+            });
+
+            test("each skipped call logs why", async () => {
+                await mismatchApi.callParseStructureMap("/ws/map.fml");
+                assert.strictEqual(lines.length, 1);
+                assert.match(lines[0], /Skipped: the server on port .* rejected the API token\./);
+                assert.ok(lines[0].includes(`port ${ApiConstants.apiServerPort} `));
+            });
+
+            test("the probe does not run again", async () => {
+                await mismatchApi.probeToken();
+                assert.strictEqual(get.called, false);
+                assert.strictEqual(onMismatch.callCount, 1);
+            });
+        });
+
+        suite("probeToken", () => {
+            test("reports a mismatch once when the probe is answered 401", async () => {
+                get.resolves({ status: 401 });
+                await mismatchApi.probeToken();
+                assert.strictEqual(onMismatch.callCount, 1);
+            });
+
+            test("sends the token to a parameterless protected call, never to /health", async () => {
+                get.resolves({ status: 400 });
+                await mismatchApi.probeToken();
+                assert.strictEqual(get.callCount, 1);
+                assert.match(get.firstCall.args[0] as string, /matchbox\/parse$/);
+                assert.deepStrictEqual(get.firstCall.args[1].headers, { "X-MapBuilder-Token": "test-token" });
+            });
+
+            // axios rejects 4xx by default, which the probe would swallow as "inconclusive": a stubbed get cannot
+            // show that, so pin the options that make a 401 arrive as a response
+            test("asks axios to resolve on any status and bounds the wait", async () => {
+                get.resolves({ status: 400 });
+                await mismatchApi.probeToken();
+                const options = get.firstCall.args[1];
+                assert.strictEqual(options.validateStatus(401), true);
+                assert.strictEqual(options.validateStatus(400), true);
+                assert.ok(options.timeout > 0);
+            });
+
+            for (const status of [200, 400]) {
+                test(`stays silent when the probe is answered ${status}`, async () => {
+                    get.resolves({ status });
+                    await mismatchApi.probeToken();
+                    assert.strictEqual(onMismatch.called, false);
+                });
+            }
+
+            test("stays silent when the server cannot be reached", async () => {
+                get.rejects(new Error("ECONNRESET"));
+                await mismatchApi.probeToken();
+                assert.strictEqual(onMismatch.called, false);
+            });
         });
     });
 

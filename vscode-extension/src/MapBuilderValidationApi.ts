@@ -6,17 +6,71 @@ import os from "os";
 import { getDataFile, logData } from "./utils";
 import path from "path";
 
+const PROBE_TIMEOUT_MS = 5000;
+
 export class MapBuilderValidationApi {
     mapBuilderValidationLogger: OutputChannel;
     private readonly apiToken: string;
+    private readonly onTokenMismatch: () => void;
+    private tokenMismatch = false;
 
-    constructor(validationOutputChannel: OutputChannel, apiToken: string) {
+    constructor(validationOutputChannel: OutputChannel, apiToken: string, onTokenMismatch: () => void = () => {}) {
         this.apiToken = apiToken;
         this.mapBuilderValidationLogger = validationOutputChannel;
+        this.onTokenMismatch = onTokenMismatch;
+    }
+
+    // Ask the running server whether it accepts our token. /health is open, so a parameterless call to a protected
+    // endpoint is the probe: the token filter answers 401 before any parameter is bound.
+    public async probeToken(): Promise<void> {
+        if (this.tokenMismatch) {
+            return;
+        }
+        try {
+            const response = await axios.get(ApiConstants.parseUrl, {
+                ...this.authConfig(),
+                timeout: PROBE_TIMEOUT_MS,
+                validateStatus: () => true,
+            });
+            if (response.status === 401) {
+                this.reportTokenMismatch();
+            }
+        } catch {
+            // Unreachable or too slow: inconclusive, the regular calls report their own failures
+        }
+    }
+
+    // Once per window: the fix is to stop the other server and reload, which builds a new API
+    private reportTokenMismatch(): void {
+        if (this.tokenMismatch) {
+            return;
+        }
+        this.tokenMismatch = true;
+        this.onTokenMismatch();
+    }
+
+    private checkTokenRejected(error: unknown): void {
+        if (axios.isAxiosError(error) && error.response?.status === 401) {
+            this.reportTokenMismatch();
+        }
+    }
+
+    // A rejected token cannot succeed on retry: skip the request instead of stacking 401s in the log
+    private skipBecauseTokenRejected(): boolean {
+        if (this.tokenMismatch) {
+            logData(
+                `Skipped: the server on port ${ApiConstants.apiServerPort} rejected the API token.`,
+                this.mapBuilderValidationLogger,
+            );
+        }
+        return this.tokenMismatch;
     }
 
     // Call the matchbox to validate structure map
     public async callValidateStructureMap(): Promise<boolean> {
+        if (this.skipBecauseTokenRejected()) {
+            return false;
+        }
         try {
             const isRunning = await this.isAppRunning();
             if (!isRunning) {
@@ -34,6 +88,7 @@ export class MapBuilderValidationApi {
             logData(result, this.mapBuilderValidationLogger);
             return true;
         } catch (error) {
+            this.checkTokenRejected(error);
             const result = `Error invoking matchbox validate: ${error}`;
             logData(result, this.mapBuilderValidationLogger);
             return false;
@@ -42,6 +97,9 @@ export class MapBuilderValidationApi {
 
     // Call the matchbox to parse structure map
     public async callParseStructureMap(filePath: string): Promise<boolean> {
+        if (this.skipBecauseTokenRejected()) {
+            return false;
+        }
         try {
             const isRunning = await this.isAppRunning();
             if (!isRunning) {
@@ -56,6 +114,7 @@ export class MapBuilderValidationApi {
             logData(result, this.mapBuilderValidationLogger);
             return response.status === 200;
         } catch (error) {
+            this.checkTokenRejected(error);
             const result = `Error invoking matchbox parsing: ${error}`;
             logData(result, this.mapBuilderValidationLogger);
             return false;
@@ -64,6 +123,9 @@ export class MapBuilderValidationApi {
 
     // Call the matchbox validation to reset and load engine
     public async callResetAndLoadEngine(): Promise<string | null> {
+        if (this.skipBecauseTokenRejected()) {
+            return null;
+        }
         try {
             const isRunning = await this.isAppRunning();
             if (!isRunning) {
@@ -76,6 +138,7 @@ export class MapBuilderValidationApi {
             const response = await axios.get(url, this.authConfig());
             return this.getPackageLoadedSuccessMessage(response.data);
         } catch (error) {
+            this.checkTokenRejected(error);
             const result = `Error invoking matchbox reset and load engine: ${error}`;
             logData(result, this.mapBuilderValidationLogger);
             return null;
