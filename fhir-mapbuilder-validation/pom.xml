@@ -10,7 +10,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <commons.io.version>2.22.0</commons.io.version>
-        <fhir.core.version>6.10.3</fhir.core.version>
+        <fhir.core.version>6.10.4</fhir.core.version>
         <health.matchbox.version>4.1.15</health.matchbox.version>
 
         <!-- Correctifs de sécurité : versions forcées au-delà de ce que gère
