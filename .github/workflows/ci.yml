@@ -299,7 +299,7 @@ jobs:
       security-events: write
     # Épinglé au tag exact : osv-scanner-action ne publie pas de tag majeur
     # mouvant (`@v2`). À garder aligné avec OSV_SCANNER_VERSION dans audit.yml.
-    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@v2.5.1
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@v2.6.0
     with:
       fail-on-vuln: false
       # Applique la allowlist racine `osv-scanner.toml` (elle ne se propage pas
