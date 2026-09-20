@@ -1,5 +1,13 @@
 # Change Log
 
+## [1.8.0](https://github.com/aphp/fhir-mapbuilder/compare/v1.7.4...v1.8.0) (2026-09-20)
+
+
+### Features
+
+* **vscode:** tell the user when the server rejects the API token ([35b8b04](https://github.com/aphp/fhir-mapbuilder/commit/35b8b04c9ced35f31f055a9e5d9fcab1126f2b37))
+* **vscode:** tell the user when the server rejects the API token ([98d8169](https://github.com/aphp/fhir-mapbuilder/commit/98d8169ef90b60f09cd130e7e4fa9f3001178654)), closes [#203](https://github.com/aphp/fhir-mapbuilder/issues/203)
+
 ## [1.7.4](https://github.com/aphp/fhir-mapbuilder/compare/v1.7.3...v1.7.4) (2026-09-20)
 
 
