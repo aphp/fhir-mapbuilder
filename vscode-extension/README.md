@@ -142,6 +142,12 @@ Autocompletion for attributes is triggered when an object is followed by a dot (
 
 ![Autocomplete](ext-images/autocomplete-part1.gif)
 
+## Contributing and support
+
+- **Developer documentation**: how the project is built, tested and organised, in the [repository README](https://github.com/aphp/fhir-mapbuilder).
+- **Contribute**: see [`CONTRIBUTING.md`](https://github.com/aphp/fhir-mapbuilder/blob/main/CONTRIBUTING.md).
+- **Report a bug**: [open an issue](https://github.com/aphp/fhir-mapbuilder/issues/new/choose).
+
 ## 📜 License
 
 This project is licensed under the [MIT License](LICENSE.md).

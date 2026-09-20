@@ -8,10 +8,11 @@
 FHIR MapBuilder is a Visual Studio Code extension designed to facilitate the edition of FHIR StructureMap resources
 using FHIR Mapping Language (FML).
 
-For a detailed explanation of what this extension does, check out the functional description in  [the extension's README](vscode-extension/README.md).
+- **User documentation**: what the extension does and how to use it, in [the extension's README](vscode-extension/README.md) (the page shown on the marketplaces).
+- **Install**: [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=aphp.fhir-mapbuilder) or [Open VSX](https://open-vsx.org/extension/aphp/fhir-mapbuilder).
+- **Developer documentation**: this README, [`CONTRIBUTING.md`](CONTRIBUTING.md) and the architecture decisions under [`docs/adr/`](docs/adr/).
 
-Contributing: [`CONTRIBUTING.md`](CONTRIBUTING.md). Reporting a vulnerability: [`SECURITY.md`](SECURITY.md).
-Architecture decisions are recorded under [`docs/adr/`](docs/adr/).
+Reporting a vulnerability: [`SECURITY.md`](SECURITY.md).
 
 ## 📂 Project Structure
 
