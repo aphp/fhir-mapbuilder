@@ -1,0 +1,5 @@
+# L'API n'est appelée que par l'extension VS Code, depuis la même machine : elle
+# écoute sur la boucle locale uniquement. Sans cette clé, Spring Boot écoute sur
+# toutes les interfaces. Surchargeable au lancement (`-Dserver.address=...`).
+server:
+  address: 127.0.0.1
