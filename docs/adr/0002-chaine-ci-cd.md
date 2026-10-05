@@ -96,7 +96,9 @@ same hooks locally (not mandatory).
   `dependabot[bot]`-gated job reads `dependabot/fetch-metadata` and enables
   `gh pr merge --auto --merge` for `version-update:semver-patch`, or
   `semver-minor` on a `direct:development` dependency. All other updates stay
-  manual. The bot's PRs still pass `commit-policy.yml` with no bypass.
+  manual. The bot's PRs still pass `commit-policy.yml` with no bypass. The
+  merge is enabled with the `AUTO_MERGE_TOKEN` PAT, not the `GITHUB_TOKEN` (see
+  the 2026-10-05 amendment).
 
 ### Least-privilege workflow permissions
 
@@ -108,7 +110,7 @@ elevates explicitly to the minimum it needs. Current holdings:
 | `ci.yml` | `test-ts`, `test-java`: `+id-token: write`. `audit-advisory`: `actions: read`, `security-events: write`. |
 | `commit-policy.yml` | `pr-title`: `pull-requests: read` (instead of `contents: read`). |
 | `audit.yml` | `audit`: `security-events: write`, `actions: read`. |
-| `dependabot-auto-merge.yml` | `dependabot`: `contents: write`, `pull-requests: write`. |
+| `dependabot-auto-merge.yml` | `dependabot`: `pull-requests: read` (the merge goes through the `AUTO_MERGE_TOKEN` PAT). |
 | `release.yml` | `release-please`: `contents/pull-requests/issues: write`. `build`: `contents: write`. `publish-openvsx`: `+id-token: write`. `smoke`: `{}`. |
 
 A `grep -nE 'permissions:' .github/workflows/*.yml` shows a workflow-level and a
@@ -348,3 +350,25 @@ in the Actions list after its first run, and the Maven package count of the grap
 is the signal that it works. The first run waits for the next `pom.xml` change on
 `main`: a Maven update from Dependabot (weekly, on Monday) or the release PR, which
 bumps the module version. Until then the count stays at 11.
+
+### 2026-10-05 — Dependabot auto-merge goes through the `AUTO_MERGE_TOKEN` PAT
+
+`dependabot-auto-merge.yml` enabled auto-merge with the `GITHUB_TOKEN`, so the
+merge commit was pushed to `main` by `github-actions`. GitHub does not start
+workflows from an event caused by the `GITHUB_TOKEN`: the merges of the
+Dependabot PRs #224 to #229 started neither `ci.yml` nor `release.yml` on
+`main`. Release-please therefore did not see these commits until the next
+human push, and `main` had no CI run (nor Codecov upload) for them.
+
+- **What.** The `gh pr merge --auto --merge` step uses `secrets.AUTO_MERGE_TOKEN`.
+  The secret is stored as a **Dependabot** secret, not an Actions one: a run
+  started by `dependabot[bot]` on `pull_request` only receives Dependabot
+  secrets. The job's `GITHUB_TOKEN` drops to `contents: read` and
+  `pull-requests: read`, which is what `dependabot/fetch-metadata` needs.
+- **Token scope.** A fine-grained PAT restricted to this repository with
+  `Contents`, `Pull requests` and `Workflows` set to read and write. `Workflows`
+  is required because the `github-actions` ecosystem updates files under
+  `.github/workflows/`, and a token without it cannot merge them.
+- **Cost.** This is a second long-lived PAT, next to `RELEASE_PLEASE_PAT`, which
+  grows the PAT debt noted in ADR 0003 and must be rotated before it expires. A
+  GitHub App token would remove both; it is the way out if a third one is needed.
