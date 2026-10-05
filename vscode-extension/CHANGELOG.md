@@ -1,5 +1,16 @@
 # Change Log
 
+## [1.8.1](https://github.com/aphp/fhir-mapbuilder/compare/v1.8.0...v1.8.1) (2026-10-05)
+
+
+### Bug Fixes
+
+* **ci:** merge Dependabot PRs with the AUTO_MERGE_TOKEN PAT ([c3d536a](https://github.com/aphp/fhir-mapbuilder/commit/c3d536ac73ea467edd6afc8aedeeba4d8e2319fd))
+* **ci:** merge Dependabot PRs with the AUTO_MERGE_TOKEN PAT ([c9b003b](https://github.com/aphp/fhir-mapbuilder/commit/c9b003b522c0ce7c68d651c026fcde456dfbf8b9))
+* **deps:** bump health.matchbox:matchbox-engine ([895503e](https://github.com/aphp/fhir-mapbuilder/commit/895503e7d5ff5c025a160289b2101d0df1828add))
+* **deps:** bump health.matchbox:matchbox-engine from 4.1.17 to 4.1.20 in /fhir-mapbuilder-validation ([3e6c104](https://github.com/aphp/fhir-mapbuilder/commit/3e6c10429f3dc9c7812142142e4f007bd258e167))
+* **deps:** restore diff override in lockfile ([6767bd5](https://github.com/aphp/fhir-mapbuilder/commit/6767bd5e5c0fa3ddd4c49d57285c7b7eb962b54d))
+
 ## [1.8.0](https://github.com/aphp/fhir-mapbuilder/compare/v1.7.4...v1.8.0) (2026-09-20)
 
 
