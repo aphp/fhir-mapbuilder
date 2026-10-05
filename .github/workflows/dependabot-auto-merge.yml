@@ -14,9 +14,11 @@ jobs:
     name: dependabot
     runs-on: ubuntu-latest
     if: github.actor == 'dependabot[bot]'
+    # Le GITHUB_TOKEN ne sert qu'à lire la PR : l'auto-merge passe par le PAT
+    # AUTO_MERGE_TOKEN (voir l'étape ci-dessous).
     permissions:
-      contents: write # activer l'auto-merge sur la PR
-      pull-requests: write # gh pr merge
+      contents: read
+      pull-requests: read # dependabot/fetch-metadata
     steps:
       - name: Fetch Dependabot metadata
         id: metadata
@@ -30,4 +32,8 @@ jobs:
         run: gh pr merge --auto --merge "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Un merge fait avec le GITHUB_TOKEN ne déclenche aucun workflow sur
+          # le push vers main (CI, Release). Le PAT, lui, les déclenche. Secret
+          # Dependabot (et non Actions) : un run lancé par Dependabot ne voit
+          # que ceux-là.
+          GH_TOKEN: ${{ secrets.AUTO_MERGE_TOKEN }}
