@@ -3,14 +3,11 @@ name: Commit policy
 on:
   pull_request:
     branches: [ main ]
-    types: [opened, edited, reopened, synchronize]
-  pull_request_target:
-    branches: [ main ]
-    types: [opened, edited, reopened, synchronize]
+    types: [opened, reopened, synchronize]
   # Déclenché à la main par `release.yml` sur la branche de la PR de release
   # (celle-ci n'émet aucun `pull_request` : release-please l'ouvre via le
-  # `GITHUB_TOKEN`). `dco` / `commitlint` / `pr-title` restent gardés sur leurs
-  # événements et sont donc *skippés* ici — GitHub compte un check requis skippé
+  # `GITHUB_TOKEN`). `dco` / `commitlint` restent gardés sur `pull_request`
+  # et sont donc *skippés* ici — GitHub compte un check requis skippé
   # comme réussi. Le commit de release-please est structurellement garanti
   # (`signoff` + `chore(main): release …`, cf. ADR 0003). Voir ADR 0003
   # §Amendments, wayfinder #126.
@@ -19,8 +16,8 @@ on:
 # Aucune permission par défaut : chaque job élève au strict minimum ce dont il a besoin.
 permissions: {}
 
-# github.event_name fait partie de la clé : les runs pull_request et
-# pull_request_target d'une même PR ne s'annulent pas l'un l'autre.
+# github.event_name fait partie de la clé : un run workflow_dispatch n'annule
+# pas celui d'une PR.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number }}
   cancel-in-progress: true
@@ -64,7 +61,9 @@ jobs:
           done
           exit $status
 
-  # Chaque commit non-merge de la PR doit être un Conventional Commit valide.
+  # Chaque commit non-merge de la PR doit être un Conventional Commit valide :
+  # avec le merge par rebase, ce sont ces commits-là qui arrivent sur main et
+  # alimentent release-please. Le titre de la PR n'y figure pas.
   commitlint:
     name: commitlint
     if: github.event_name == 'pull_request'
@@ -81,28 +80,3 @@ jobs:
         uses: wagoid/commitlint-github-action@v6
         with:
           configFile: commitlint.config.mjs
-
-  # Le titre de la PR devient le sujet du commit de merge : il doit lui aussi
-  # être un Conventional Commit valide. pull_request_target pour revalider le
-  # titre à chaque édition, y compris pour les PR issues d'un fork.
-  pr-title:
-    name: pr-title
-    if: github.event_name == 'pull_request_target'
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: read
-    steps:
-      - name: Validate PR title
-        uses: amannn/action-semantic-pull-request@v6
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          # Doit rester aligné sur `type-enum` dans commitlint.config.mjs.
-          types: |
-            feat
-            fix
-            test
-            docs
-            chore
-            build
-          requireScope: false

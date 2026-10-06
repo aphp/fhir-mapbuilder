@@ -3,8 +3,8 @@
  *
  * Enforced in CI by .github/workflows/commit-policy.yml (job `commitlint`,
  * wagoid/commitlint-github-action) on every non-merge commit of a pull request.
- * The same Conventional Commits grammar is expected of the PR title, which
- * becomes the subject of the merge commit and feeds release-please.
+ * Pull requests are merged by rebase, so these commits land on `main` as they
+ * are and are what release-please reads.
  */
 export default {
   extends: ['@commitlint/config-conventional'],

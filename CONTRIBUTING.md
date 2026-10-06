@@ -61,9 +61,9 @@ one, run `npx eslint src --prune-suppressions` and commit the result.
   `feat`, `fix`, `test`, `docs`, `chore`, `build`. The subject line (the whole
   `type(scope): subject` header) must be **72 characters or fewer** and must
   **not** end with a period. Scope is optional and free-form.
-- **The PR title is also a Conventional Commit.** It becomes the subject of the
-  merge commit and feeds release automation, so it is validated with the same
-  grammar.
+- **The PR title is free.** Pull requests are merged by rebase, so the title
+  never reaches `main`; only your commits do. Giving it the same form is still
+  a readable habit.
 - **Sign off every commit (DCO).** Add a `Signed-off-by:` trailer with
   `git commit -s`. This certifies you wrote the change or have the right to
   submit it under the project licence (see the [Developer Certificate of
@@ -88,9 +88,10 @@ there is no exemption path.
 
 ## Keep a clean branch history
 
-`main` accepts **merge commits only** — squash and rebase merging are disabled at
-the repository level, so every commit on your branch lands on `main` and is read
-by release automation. Before opening (or updating) a PR:
+`main` accepts **rebase merging only** — merge commits and squash merging are
+disabled, and the `main` ruleset requires a linear history. Every commit on
+your branch is replayed onto `main` as it is and read by release automation.
+Before opening (or updating) a PR:
 
 - Rebase your branch onto the latest `main`.
 - Squash fixup/WIP commits so each remaining commit is a self-contained,

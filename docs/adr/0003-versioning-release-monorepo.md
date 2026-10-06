@@ -187,8 +187,9 @@ updated, and re-fires on every `main` push that updates it. Needs `actions:
 write` on the job.
 
 On the release PR the six `ci.yml` validation jobs run for real. The remaining
-required contexts — `dependency-review`, `dco`, `commitlint`, `pr-title` — are
-guarded to `pull_request` / `pull_request_target` and are therefore *skipped* on
+required contexts — `dependency-review`, `dco`, `commitlint` (and `pr-title`
+until it was removed on 2026-10-06, see ADR 0001) — are guarded to
+`pull_request` and are therefore *skipped* on
 the `workflow_dispatch` run; GitHub treats a skipped required check as passing.
 This is acceptable: the release-please commit's DCO trailer and Conventional
 form are guaranteed structurally by `signoff` + `chore(main): release …` in

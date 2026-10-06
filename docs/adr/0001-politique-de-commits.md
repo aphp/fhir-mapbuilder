@@ -4,7 +4,8 @@ Date: 2026-08-31
 
 ## Status
 
-Accepted.
+Accepted. The merge strategy (merge commits only) and the `pr-title` check are
+replaced by the 2026-10-06 amendment: rebase merging only.
 
 Part of the alignment of `fhir-mapbuilder` engineering practices on the reference
 repository `davidouagne/datahub-healthdcat-ap-exporter` (spec #80, wayfinder map
@@ -137,3 +138,41 @@ pre-existing history is never re-judged. release-please starts from a
 - **Exempting bots from the checks with an `if:` condition.** Rejected: a single
   rule for humans and bots is simpler to reason about, and both Dependabot and
   release-please already produce conforming, signed-off commits.
+
+## Amendments
+
+### 2026-10-06 — rebase merging only; `pr-title` removed
+
+Every changelog entry since 1.7.2 appeared twice. The repository had
+`merge_commit_message: PR_TITLE`, so the body of each merge commit repeated the
+PR title (`fix(ci): …`), and release-please parsed it as a second Conventional
+Commit next to the branch commit it summarised. Example in 1.8.1: `c3d536a`
+(merge of #230) and `c9b003b` (its commit) give the same line. ADR 0003 had
+already met the effect when it kept the `build` section hidden.
+
+- **What.** `main` accepts **rebase merging only**: each branch commit is
+  replayed onto `main` as it is, with no merge commit. Repository settings
+  become `allow_rebase_merge: true`, `allow_merge_commit: false`
+  (`allow_squash_merge` stays `false`). The `main` ruleset allows only the
+  `rebase` merge method and gains `required_linear_history`, which the old
+  strategy ruled out. `dependabot-auto-merge.yml` uses `gh pr merge --auto
+  --rebase`.
+- **`pr-title` removed.** The PR title no longer reaches `main`, so validating
+  it protected nothing. The job, its `pull_request_target` trigger and the
+  `edited` event type (only there to revalidate an edited title) are removed
+  from `commit-policy.yml`, and `pr-title` is no longer a required check.
+  `commitlint` on each commit is now the only grammar gate, and it covers
+  exactly what release-please reads.
+- **What does not change.** DCO and Conventional Commits on every commit,
+  release-please, and the expectation of a clean, rebased branch. A rebase
+  keeps commit messages, so the `Signed-off-by:` trailers survive; GitHub
+  becomes the committer of the replayed commits and their SHAs differ from the
+  branch ones.
+- **Rejected alternatives.** Keeping merge commits with
+  `merge_commit_message: BLANK` would also remove the duplicate, but keeps a
+  merge commit whose subject (`Merge pull request #N …`) release-please
+  ignores, and a non-linear history for no benefit. Squash merging stays
+  rejected for the reason given above.
+
+The section "Alternatives considered" above (linear history rejected) records
+the original decision and is superseded by this amendment.

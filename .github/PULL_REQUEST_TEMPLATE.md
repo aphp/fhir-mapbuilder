@@ -1,7 +1,7 @@
 <!--
-  The PR title becomes the subject of the merge commit and feeds release
-  automation, so it must itself be a valid Conventional Commit
-  (type: feat | fix | test | docs | chore | build, subject <= 72 chars, no
+  PRs are merged by rebase: each commit of the branch lands on `main` as it is
+  and feeds release automation, so each must be a valid Conventional Commit
+  (type: feat | fix | test | docs | chore | build, header <= 72 chars, no
   trailing period). Example: fix(validation): reject StructureMap without a group
 -->
 
