@@ -94,7 +94,8 @@ same hooks locally (not mandatory).
   with an `@typescript-eslint` peer conflict — see PR #97 / the follow-up fix.)
 - **`dependabot-auto-merge.yml`**: `pull_request`, `permissions: {}`; a
   `dependabot[bot]`-gated job reads `dependabot/fetch-metadata` and enables
-  `gh pr merge --auto --merge` for `version-update:semver-patch`, or
+  `gh pr merge --auto --rebase` (`--merge` until the ADR 0001 amendment of
+  2026-10-06) for `version-update:semver-patch`, or
   `semver-minor` on a `direct:development` dependency. All other updates stay
   manual. The bot's PRs still pass `commit-policy.yml` with no bypass. The
   merge is enabled with the `AUTO_MERGE_TOKEN` PAT, not the `GITHUB_TOKEN` (see
@@ -108,7 +109,7 @@ elevates explicitly to the minimum it needs. Current holdings:
 | Workflow | Jobs elevating beyond `contents: read` |
 |---|---|
 | `ci.yml` | `test-ts`, `test-java`: `+id-token: write`. `audit-advisory`: `actions: read`, `security-events: write`. |
-| `commit-policy.yml` | `pr-title`: `pull-requests: read` (instead of `contents: read`). |
+| `commit-policy.yml` | None (`pr-title` and its `pull-requests: read` were removed on 2026-10-06, see ADR 0001). |
 | `audit.yml` | `audit`: `security-events: write`, `actions: read`. |
 | `dependabot-auto-merge.yml` | `dependabot`: `pull-requests: read` (the merge goes through the `AUTO_MERGE_TOKEN` PAT). |
 | `release.yml` | `release-please`: `contents/pull-requests/issues: write`. `build`: `contents: write`. `publish-openvsx`: `+id-token: write`. `smoke`: `{}`. |
