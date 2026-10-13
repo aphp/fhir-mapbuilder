@@ -1,5 +1,12 @@
 # Change Log
 
+## [1.8.2](https://github.com/aphp/fhir-mapbuilder/compare/v1.8.1...v1.8.2) (2026-10-13)
+
+
+### Bug Fixes
+
+* **deps:** bump jackson to 2.21.7 for four CVEs ([191908a](https://github.com/aphp/fhir-mapbuilder/commit/191908a8c90a7ae1e301a43daa8ec8b2287353f6))
+
 ## [1.8.1](https://github.com/aphp/fhir-mapbuilder/compare/v1.8.0...v1.8.1) (2026-10-05)
 
 
