@@ -1,5 +1,13 @@
 # Change Log
 
+## [1.8.3](https://github.com/aphp/fhir-mapbuilder/compare/v1.8.2...v1.8.3) (2026-10-13)
+
+
+### Bug Fixes
+
+* **deps:** bump health.matchbox:matchbox-engine ([28306ba](https://github.com/aphp/fhir-mapbuilder/commit/28306baaa52cc5ef23f5b5b4e3ce8bde5a29b25d))
+* **deps:** bump io.opentelemetry:opentelemetry-bom ([6d894ce](https://github.com/aphp/fhir-mapbuilder/commit/6d894ce814727284c8c2e7dbdf560191ea5c8e25))
+
 ## [1.8.2](https://github.com/aphp/fhir-mapbuilder/compare/v1.8.1...v1.8.2) (2026-10-13)
 
 
