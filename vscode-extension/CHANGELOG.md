@@ -1,5 +1,13 @@
 # Change Log
 
+## [1.8.4](https://github.com/aphp/fhir-mapbuilder/compare/v1.8.3...v1.8.4) (2026-10-22)
+
+
+### Bug Fixes
+
+* **deps:** bump follow-redirects in /vscode-extension ([01b246d](https://github.com/aphp/fhir-mapbuilder/commit/01b246da1ade879bb2d722e8e864b34b2a814c77))
+* **deps:** restore diff override in lockfile ([9a4a9f5](https://github.com/aphp/fhir-mapbuilder/commit/9a4a9f51ae7ed36f54a002138510b4d39391ad68))
+
 ## [1.8.3](https://github.com/aphp/fhir-mapbuilder/compare/v1.8.2...v1.8.3) (2026-10-13)
 
 
