@@ -193,6 +193,7 @@
   "//overrides": "Correctifs de sécurité forcés sur des dépendances transitives (toutes sous devDependencies, aucune bundlée par esbuild). OSV-Scanner / issue #167. Retirer une entrée dès que le parent direct tire au moins cette version.",
   "overrides": {
     "serialize-javascript@6.0.2": "7.0.5",
-    "diff@7.0.0": "8.0.4"
+    "diff@7.0.0": "8.0.4",
+    "@azure/msal-node@5.6.0": "7.1.2"
   }
 }
