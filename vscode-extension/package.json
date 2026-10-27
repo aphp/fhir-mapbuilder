@@ -190,10 +190,12 @@
     "typescript": "^5.4.5",
     "typescript-eslint": "^8.72.0"
   },
-  "//overrides": "Correctifs de sécurité forcés sur des dépendances transitives (toutes sous devDependencies, aucune bundlée par esbuild). OSV-Scanner / issue #167. Retirer une entrée dès que le parent direct tire au moins cette version.",
+  "//overrides": "Correctifs de sécurité forcés sur des dépendances transitives (toutes sous devDependencies, aucune bundlée par esbuild). OSV-Scanner / issue #167. Retirer une entrée dès que le parent direct tire au moins cette version. diff est imbriqué sous mocha@11.8.0 (et non `diff@7.0.0`) : npm 10.9.2 (packageManager, utilisé par Dependabot) ignore la forme `pkg@version` sur ce nœud imbriqué et casse npm ci (#255).",
   "overrides": {
     "serialize-javascript@6.0.2": "7.1.4",
-    "diff@7.0.0": "8.0.4",
+    "mocha@11.8.0": {
+      "diff": "8.0.4"
+    },
     "@azure/msal-node@5.6.0": "7.1.2"
   }
 }
