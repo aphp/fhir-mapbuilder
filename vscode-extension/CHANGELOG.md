@@ -1,5 +1,13 @@
 # Change Log
 
+## [1.8.5](https://github.com/aphp/fhir-mapbuilder/compare/v1.8.4...v1.8.5) (2026-10-27)
+
+
+### Bug Fixes
+
+* **deps:** override @azure/msal-node to 7.1.2 ([6036e0a](https://github.com/aphp/fhir-mapbuilder/commit/6036e0aec9fec97bafc1c43c0375247ad74f2608))
+* **deps:** retarget serialize-javascript override to 7.1.4 ([64632ba](https://github.com/aphp/fhir-mapbuilder/commit/64632ba12b3928b4ef04a3a452924ebbb06edbc2))
+
 ## [1.8.4](https://github.com/aphp/fhir-mapbuilder/compare/v1.8.3...v1.8.4) (2026-10-22)
 
 
