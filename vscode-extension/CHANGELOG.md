@@ -1,5 +1,15 @@
 # Change Log
 
+## [1.8.6](https://github.com/aphp/fhir-mapbuilder/compare/v1.8.5...v1.8.6) (2026-11-09)
+
+
+### Bug Fixes
+
+* **deps:** bump axios in /vscode-extension in the prod-minor-patch group ([e18ac0d](https://github.com/aphp/fhir-mapbuilder/commit/e18ac0dc1fde34368582a540eae332a3aaf0e54f))
+* **deps:** bump follow-redirects in /vscode-extension ([3354dbe](https://github.com/aphp/fhir-mapbuilder/commit/3354dbee73adb96b58529309dbed536ccc49f5f7))
+* **deps:** bump io.opentelemetry:opentelemetry-bom ([d58d2f0](https://github.com/aphp/fhir-mapbuilder/commit/d58d2f0eca77fcc8eb6082eb0043a2e6f06a0324))
+* **deps:** bump semver ([491e032](https://github.com/aphp/fhir-mapbuilder/commit/491e032ea596fe209ffa30ae4b09ed47c71422ba))
+
 ## [1.8.5](https://github.com/aphp/fhir-mapbuilder/compare/v1.8.4...v1.8.5) (2026-10-27)
 
 
