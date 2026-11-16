@@ -1,5 +1,12 @@
 # Change Log
 
+## [1.8.7](https://github.com/aphp/fhir-mapbuilder/compare/v1.8.6...v1.8.7) (2026-11-16)
+
+
+### Bug Fixes
+
+* **deps:** bump the prod-minor-patch group ([9317602](https://github.com/aphp/fhir-mapbuilder/commit/9317602b2a5ff41a07cb53e7eac7168ffc1249c2))
+
 ## [1.8.6](https://github.com/aphp/fhir-mapbuilder/compare/v1.8.5...v1.8.6) (2026-11-09)
 
 
