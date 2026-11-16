@@ -42,8 +42,7 @@ workflow since 2026-09-20, see Amendments):
 | `typecheck` | — | `tsc --noEmit`. |
 | `test-ts` | `id-token: write` | Extension tests under `xvfb`, `--coverage`, upload lcov to Codecov (flag `ts`) via OIDC. |
 | `test-java` | `id-token: write` | `mvn verify` (JaCoCo XML), upload to Codecov (flag `java`) via OIDC. |
-| `build` | — | `mvn package -DskipTests`, smoke-test the jar (`.github/scripts/smoke-jar.sh`: `GET /health` → 200, run from a directory whose name has a space and an accent), upload it as the `validation-jar` artifact, bundle the jar, `vsce package`, assert the jar is inside the `.vsix`. |
-| `os-smoke` | — | `windows-latest` and `macos-latest` matrix, `needs: build`: download the `validation-jar` artifact, run the same smoke script, then `npm run test:unit`. No Codecov upload. Advisory: not a required check of the `main` ruleset until it is stably green (ADR 0005, attribute 4). |
+| `build` | — | `mvn package -DskipTests`, smoke-test the jar (`.github/scripts/smoke-jar.sh`: `GET /health` → 200, run from a directory whose name has a space and an accent), bundle the jar, `vsce package`, assert the jar is inside the `.vsix`. |
 | `audit-advisory` | `actions: read`, `security-events: write` | PR only, **non-blocking** reusable OSV-Scanner PR workflow; pushes SARIF to the Security tab. |
 
 Build tooling for the Java module (Spotless, SpotBugs, JaCoCo, Enforcer) is
@@ -373,3 +372,13 @@ human push, and `main` had no CI run (nor Codecov upload) for them.
 - **Cost.** This is a second long-lived PAT, next to `RELEASE_PLEASE_PAT`, which
   grows the PAT debt noted in ADR 0003 and must be rotated before it expires. A
   GitHub App token would remove both; it is the way out if a third one is needed.
+
+### 2026-11-16 — the `os-smoke` job is removed
+
+`ci.yml` ran an advisory `os-smoke` job since 2026-09-20: a `windows-latest` and
+`macos-latest` matrix that downloaded the jar built by `build` (`validation-jar`
+artifact), ran `.github/scripts/smoke-jar.sh` and then `npm run test:unit`. It was
+never a required check. It is removed, together with the artifact upload in
+`build` that only fed it: it cost CI time on every PR for no operational value
+(ADR 0005, attribute 4 goes back to unmeasured). The jar smoke test stays in
+`build`, on Linux.

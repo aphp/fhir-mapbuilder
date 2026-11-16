@@ -5,8 +5,7 @@
 #
 # Usage : bash .github/scripts/smoke-jar.sh <chemin-du-jar>
 #
-# Partagé par le job `build` (Linux) et le job `os-smoke` (Windows, macOS) de ci.yml : il doit
-# tourner à l'identique sous bash (Linux, macOS) et sous Git Bash (Windows).
+# Utilisé par le job `build` de ci.yml (Linux).
 set -eu
 
 jar="${1:?usage: smoke-jar.sh <chemin-du-jar>}"
