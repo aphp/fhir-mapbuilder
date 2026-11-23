@@ -40,7 +40,7 @@ jobs:
         # Épinglé au tag exact : le projet ne publie pas de tag majeur mouvant
         # (`@v5`) — contrairement à actions/checkout & co. Dependabot (écosystème
         # github-actions) le fait avancer.
-        uses: actions/dependency-review-action@v5.0.0
+        uses: actions/dependency-review-action@v5.0.1
         with:
           # Bloque toute dépendance *nouvellement introduite* portant une
           # vulnérabilité de sévérité haute ou critique.
