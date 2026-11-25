@@ -42,6 +42,7 @@ workflow since 2026-09-20, see Amendments):
 | `typecheck` | — | `tsc --noEmit`. |
 | `test-ts` | `id-token: write` | Extension tests under `xvfb`, `--coverage`, upload lcov to Codecov (flag `ts`) via OIDC. |
 | `test-java` | `id-token: write` | `mvn verify` (JaCoCo XML), upload to Codecov (flag `java`) via OIDC. |
+| `test-java-windows` | — | `mvn test` on `windows-latest`. No Codecov upload, no Spotless or SpotBugs (both run in `test-java`). Since 2026-11-25, see Amendments. |
 | `build` | — | `mvn package -DskipTests`, smoke-test the jar (`.github/scripts/smoke-jar.sh`: `GET /health` → 200, run from a directory whose name has a space and an accent), bundle the jar, `vsce package`, assert the jar is inside the `.vsix`. |
 | `audit-advisory` | `actions: read`, `security-events: write` | PR only, **non-blocking** reusable OSV-Scanner PR workflow; pushes SARIF to the Security tab. |
 
@@ -382,3 +383,14 @@ never a required check. It is removed, together with the artifact upload in
 `build` that only fed it: it cost CI time on every PR for no operational value
 (ADR 0005, attribute 4 goes back to unmeasured). The jar smoke test stays in
 `build`, on Linux.
+
+### 2026-11-25 — a `test-java-windows` job is added
+
+#276 was a Windows-only wrong result: `NpmPackage` names package files with
+`File.separator`, and Matchbox 4.1.x then skipped every CodeSystem, ValueSet,
+NamingSystem and ConceptMap. Nothing in the Linux CI could see it. `ci.yml` gets a
+`test-java-windows` job, `mvn test` of the validation module on `windows-latest`, so
+the Java suite (including the #276 regression test) runs with both separators. It is
+not the `os-smoke` job of 2026-09-20 back: no macOS (same separator as Linux), no jar
+smoke test and no extension tests. It runs what the Linux suite cannot check. It is
+not a required check of the `main` ruleset until it is stably green (ADR 0001).
