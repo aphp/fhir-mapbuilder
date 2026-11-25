@@ -56,8 +56,10 @@ flags:
 # Fichiers hors périmètre de couverture (point d'entrée Spring, DTO sans logique,
 # câblage Spring du moteur sans logique propre, code de test). Ils n'entrent pas
 # dans le calcul. Le reste de `config/` compte : `ApiTokenFilter` est le code
-# d'authentification du serveur.
+# d'authentification du serveur. `ch/ahdis/**` est la copie de LazyTerminologyLoader
+# de matchbox (#276) : code amont, non instrumenté par JaCoCo, à retirer avec #248.
 ignore:
+  - "**/src/main/java/ch/ahdis/**"
   - "**/MatchBoxApplication.java"
   - "**/model/**"
   - "**/config/MatchboxEngineConfig.java"
