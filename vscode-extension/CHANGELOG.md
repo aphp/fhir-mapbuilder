@@ -1,5 +1,12 @@
 # Change Log
 
+## [1.8.8](https://github.com/aphp/fhir-mapbuilder/compare/v1.8.7...v1.8.8) (2026-11-25)
+
+
+### Bug Fixes
+
+* **validation:** load package terminology on Windows ([a60b95f](https://github.com/aphp/fhir-mapbuilder/commit/a60b95f6a4b0de2bf4038f7958a790cba49f1da3)), closes [#276](https://github.com/aphp/fhir-mapbuilder/issues/276)
+
 ## [1.8.7](https://github.com/aphp/fhir-mapbuilder/compare/v1.8.6...v1.8.7) (2026-11-16)
 
 
