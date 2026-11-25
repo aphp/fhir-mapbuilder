@@ -1,0 +1,9 @@
+map "http://aphp.fr/fhir/StructureMap/translate" = "translate"
+
+uses "http://hl7.org/fhir/StructureDefinition/Patient" alias PatientSrc as source
+uses "http://hl7.org/fhir/StructureDefinition/Patient" alias PatientTgt as target
+
+group translate(source src : PatientSrc, target tgt : PatientTgt) {
+  src.id as s -> tgt.id = s "id";
+  src.gender as g -> tgt.gender = translate(g, 'http://aphp.fr/fhir/ConceptMap/gender', 'code') "gender";
+}

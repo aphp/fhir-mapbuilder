@@ -1,0 +1,20 @@
+{
+  "resourceType": "ConceptMap",
+  "id": "gender",
+  "url": "http://aphp.fr/fhir/ConceptMap/gender",
+  "version": "0.1.0",
+  "name": "Gender",
+  "status": "active",
+  "group": [
+    {
+      "source": "http://hl7.org/fhir/administrative-gender",
+      "target": "http://hl7.org/fhir/administrative-gender",
+      "element": [
+        {
+          "code": "female",
+          "target": [{ "code": "male", "equivalence": "equivalent" }]
+        }
+      ]
+    }
+  ]
+}
