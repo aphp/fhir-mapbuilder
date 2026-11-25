@@ -35,7 +35,7 @@
 
     <groupId>fr.aphp</groupId>
     <artifactId>fhir-mapbuilder-validation</artifactId>
-    <version>1.8.7</version>
+    <version>1.8.8</version>
 
     <dependencyManagement>
         <dependencies>
