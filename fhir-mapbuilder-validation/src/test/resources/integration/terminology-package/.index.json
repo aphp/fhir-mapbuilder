@@ -1,0 +1,12 @@
+{
+  "index-version": 2,
+  "files": [
+    {
+      "filename": "ConceptMap-gender.json",
+      "resourceType": "ConceptMap",
+      "id": "gender",
+      "url": "http://aphp.fr/fhir/ConceptMap/gender",
+      "version": "0.1.0"
+    }
+  ]
+}

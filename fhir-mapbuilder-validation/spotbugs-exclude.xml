@@ -39,4 +39,16 @@
         <Bug pattern="REC_CATCH_EXCEPTION"/>
     </Match>
 
+    <!-- Copie de matchbox-engine 4.1.21 (#276), identique à l'amont sauf
+         getPackageFolderFilename() : on n'en corrige pas le style, pour que le
+         diff avec l'amont reste d'une ligne. Le record OidRegistration expose
+         son Set comme dans matchbox. À supprimer avec la classe (#248). -->
+    <Match>
+        <Class name="~ch\.ahdis\.matchbox\.engine\.packages\.LazyTerminologyLoader(\$.*)?"/>
+        <Or>
+            <Bug pattern="EI_EXPOSE_REP"/>
+            <Bug pattern="EI_EXPOSE_REP2"/>
+        </Or>
+    </Match>
+
 </FindBugsFilter>
