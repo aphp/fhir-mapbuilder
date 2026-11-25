@@ -177,6 +177,32 @@ jobs:
           files: fhir-mapbuilder-validation/target/site/jacoco/jacoco.xml
           flags: java
 
+  test-java-windows:
+    # Les tests Java sur Windows : NpmPackage construit les noms de fichiers des
+    # paquets avec File.separator, et Matchbox 4.1.x ignorait alors toute la
+    # terminologie (#276), un bug invisible sous Linux. Pas de macOS (même
+    # séparateur que Linux), pas d'upload Codecov (le job test-java s'en charge).
+    # `test` et non `verify` : Spotless et SpotBugs tournent déjà dans test-java.
+    name: test-java-windows
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: fhir-mapbuilder-validation/pom.xml
+
+      - name: mvn test
+        run: mvn -B test
+        working-directory: fhir-mapbuilder-validation
+
   build:
     name: build
     runs-on: ubuntu-latest
