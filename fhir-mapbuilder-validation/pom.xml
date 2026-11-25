@@ -161,6 +161,13 @@
                         <goals>
                             <goal>report</goal>
                         </goals>
+                        <configuration>
+                            <!-- Copie de matchbox (#276) : non instrumentée (ch/ahdis/** ci-dessus),
+                                 elle sortirait à 0 %. Code amont, hors périmètre. À retirer avec #248. -->
+                            <excludes>
+                                <exclude>ch/ahdis/**</exclude>
+                            </excludes>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
